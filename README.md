@@ -30,9 +30,9 @@ The tool is designed to convert fault trees from draw.io diagram XML files into 
 4. **Save the XML File in the `/fault_trees` Folder**:
     * After exporting your diagram as an XML file, save it in the `/fault_trees` folder within the project directory.
 
-### Example Fault Tree Diagram
+### Input Example: Fault Tree Diagram
 
-Below is an example of a fault tree diagram in Draw.io:
+Below is an example of two fault tree diagrams generated in the same Draw.io file:
 
 ![Fault Tree Example](fault_trees/example_3.png)
 
@@ -52,8 +52,11 @@ Where:
 * **-r**: (Optional) Enables renderization of the output. Defaults to false.
 * **-v**: (Optional) Automatically shows the renders if renderization (**-r**) is true. Defaults to false.
 
-### Example Behavior Tree Diagram
+### Output Example: Behavior Tree Diagram
 
-Below is an example of a fault tree diagram in Draw.io:
+Below is an example of the behavior tree diagrams generated from the two fault trees. The XML file is loaded using [Groot](https://github.com/BehaviorTree/Groot):
 
-![Behavior Tree Example](behavior_trees/render/BT_avcm.png)
+The first behavior tree is represented below:
+![Behavior Tree Example 1](behavior_trees/render/BT_avcm.png)
+The second behavior tree is shown below:
+![Behavior Tree Example 2](behavior_trees/render/BT_avls.png)
