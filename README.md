@@ -30,6 +30,8 @@ The tool is designed to convert fault trees from draw.io diagram XML files into 
 4. **Save the XML File in the `/fault_trees` Folder**:
     * After exporting your diagram as an XML file, save it in the `/fault_trees` folder within the project directory.
 
+**Warning!**: All the fault tree elements need to be connected by directional arrows. Ensure that all of them are physically attached to their related elements.
+
 ### Input Example: Fault Tree Diagram
 
 Below is an example of two fault tree diagrams generated in the same Draw.io file:
