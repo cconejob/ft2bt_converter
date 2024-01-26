@@ -34,3 +34,5 @@ __pycache__/
 
 # Behavior tree files
 behavior_trees/
+*.xml
+!fault_trees/*.xml
