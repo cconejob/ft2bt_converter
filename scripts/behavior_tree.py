@@ -162,6 +162,15 @@ class BehaviorTree:
             
         if self.action:
             self.postprocess_tree()
+        
+    def get_behavior_tree_name(self, node_id):
+        """
+        Get the behavior tree name from the nodes
+        
+        Returns:
+            str: Behavior tree name
+        """
+        return self.nodes[node_id].children[0].label.split(' ')[0].strip('"').lower()
             
     def add_nodes_xml(self, parent_element, node):
         """
@@ -215,6 +224,7 @@ class BehaviorTree:
         
         for root_node_id in actual_root_nodes:
             self.add_nodes_xml(behavior_tree, self.nodes[root_node_id])
+            self.name = self.get_behavior_tree_name(root_node_id)
 
         # Generate XML string
         xml_str = ET.tostring(root, encoding='unicode')
