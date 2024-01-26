@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<root main_tree_to_execute="BehaviorTree">
+    <!-- ////////// -->
+    <BehaviorTree ID="BehaviorTree">
+        <Sequence name="HARA AVLS">
+            <Fallback name="Module Freezes?">
+                <Inverter>
+                    <Condition ID="freeze_avls" freq_limit="30.0" t_anomaly="5.0"/>
+                </Inverter>
+                <Action ID="stop"/>
+            </Fallback>
+             <Fallback name="Fails to determine position?">
+                <Inverter>
+                    <Condition ID="fails_position" t_anomaly="5.0" tolerance_acc="0.26" n_sat_min="4"/>
+                </Inverter>
+                <Action ID="stop"/>
+            </Fallback>
+        </Sequence>
+    </BehaviorTree>
+    <!-- ////////// -->
+    <TreeNodesModel>
+        <Action ID="degraded"/>
+        <Condition ID="freeze_avls">
+            <input_port name="freq_limit" type="double"/>
+            <input_port name="t_anomaly" type="double"/>
+        </Condition>
+        <Action ID="nominal"/>
+        <Action ID="stop"/>
+    </TreeNodesModel>
+    <!-- ////////// -->
+</root>

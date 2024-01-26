@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<root main_tree_to_execute="BehaviorTree">
+    <!-- ////////// -->
+    <BehaviorTree ID="BehaviorTree">
+        <Sequence name="HARA AVCM">
+            <Fallback name="Module Freezes?">
+                <Inverter>
+                    <Condition ID="freeze_avcm" freq_limit="10.0" t_anomaly="3.0" tolerance="1."/>
+                </Inverter>
+                <Action ID="stop"/>
+            </Fallback>
+            <Fallback name="Speed above limit?">
+                <Inverter>
+                    <Condition ID="speed_above" t_anomaly="5.0" tolerance="1."/>
+                </Inverter>
+                <Action ID="stop"/>
+            </Fallback>
+            <Fallback name="Outside path?">
+                <Inverter>
+                    <Condition ID="outside_trajectory" t_anomaly="3.0" tolerance_x="1.0" tolerance_y="0.5" tolerance_yaw="0.1"/>
+                </Inverter>
+                <Action ID="stop"/>
+            </Fallback>
+            <Fallback name="Speed below reference?">
+                <Inverter>
+                    <Condition ID="speed_below" t_anomaly="10.0" tolerance="7.0"/>
+                </Inverter>
+                <Action ID="degraded"/>
+            </Fallback>
+            <Action ID="nominal"/>
+        </Sequence>
+    </BehaviorTree>
+    <!-- ////////// -->
+    <TreeNodesModel>
+        <Action ID="degraded"/>
+        <Condition ID="freeze_avcm">
+            <input_port name="freq_limit" type="double"/>
+            <input_port name="t_anomaly" type="double"/>
+        </Condition>
+        <Action ID="nominal"/>
+        <Condition ID="outside_trajectory">
+            <input_port name="t_anomaly" type="double"/>
+            <input_port name="tolerance_x" type="double"/>
+            <input_port name="tolerance_y" type="double"/>
+            <input_port name="tolerance_yaw" type="double"/>
+        </Condition>
+        <Condition ID="speed_above">
+            <input_port name="t_anomaly" type="double"/>
+            <input_port name="tolerance" type="double"/>
+        </Condition>
+        <Condition ID="speed_below">
+            <input_port name="t_anomaly" type="double"/>
+            <input_port name="tolerance" type="double"/>
+        </Condition>
+        <Action ID="stop"/>
+    </TreeNodesModel>
+    <!-- ////////// -->
+</root>
