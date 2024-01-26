@@ -1,12 +1,17 @@
 # Fault Tree to Behavior Tree Converter
 
 ## Overview
+
 This project focuses on the conversion of fault trees, represented in draw.io diagram XML files, into behavior tree XML files compatible with the BehaviorTree.CPP library. It enables users to transform their fault tree diagrams into actionable behavior trees, facilitating integration with systems that utilize the BehaviorTree.CPP framework for managing complex behaviors.
 
 ## Installation
+
 1. Clone the repository to your local machine.
+
 2. Ensure you have Python installed.
+
 3. Install the required dependencies by running the following command in the project directory.
+
 ```bash
 git clone git@github.com:cconejob/trees.git
 cd trees
@@ -14,6 +19,7 @@ pip install -r requirements.txt
 ```
 
 ## Usage
+
 The tool is designed to convert fault trees from draw.io diagram XML files into behavior tree XML files compatible with the BehaviorTree.CPP library. Here's how to use it:
 
 ### Preparing Your Fault Tree Diagram
@@ -58,7 +64,16 @@ Where:
 
 Below is an example of the behavior tree diagrams generated from the two fault trees. The XML file is loaded using [Groot](https://github.com/BehaviorTree/Groot):
 
-The first behavior tree is represented below:
+The first behavior tree example represents the monitorisation of the control module (AVCM).
 ![Behavior Tree Example 1](behavior_trees/render/BT_avcm.png)
-The second behavior tree is shown below:
+
+The second behavior tree represents the monitorisation of the localisation module (AVLS).
 ![Behavior Tree Example 2](behavior_trees/render/BT_avls.png)
+
+## Contact Information and Acknowledgement
+
+For further information regarding this project, please feel free to reach out to Carlos Conejo.
+
+This project was developed at the [Institut de Robòtica i Informàtica Industrial (IRI)](https://www.iri.upc.edu/), a joint university research center of the Polytechnic University of Catalonia (UPC) and the Spanish National Research Council (CSIC).
+
+Research partially funded by the Spanish State Research Agency (AEI) and the European Regional Development Fund (ERFD) through the SaCoAV project (ref. PID2020-114244RB-I00). Also funded by Renault Group through the Industrial Doctorate "Safety of Autonomous Vehicles" (ref. C12507).
