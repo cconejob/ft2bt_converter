@@ -3,7 +3,6 @@ import io
 import networkx as nx
 import graphviz
 from networkx.drawing.nx_pydot import read_dot
-import matplotlib.pyplot as plt
 import xml.etree.ElementTree as ET
 
 
@@ -166,15 +165,16 @@ class XMLFTAParser:
             
         return dot_str, G
             
-    def render_dot_string(self, dot_str):
+    def render_dot_string(self, dot_str, view=False):
         """
         Render the Graphviz dot string
 
         Args:
             dot_str (str): Graphviz dot string
+            view (bool): Whether to view the rendered graph
         """
         self.fault_tree_number += 1
-        graphviz.Source(dot_str).render(f'output_fault_tree_{self.fault_tree_number}.gv', view=True)
+        graphviz.Source(dot_str).render(f'output_fault_tree_{self.fault_tree_number}.gv', view=view)
         
     def find_root_nodes(self):
         """
@@ -220,14 +220,7 @@ class XMLFTAParser:
         
             # Create a graphviz dot render from the dot string if render is True
             if render:
-                self.render_dot_string(dot_str)
-
-            # Draw the graph in NetworkX graph if plot is True
-            if plot:
-                pos = nx.spring_layout(G) 
-                label_dict = {node: data['label'] for node, data in list(G.nodes(data=True))[:-1]}
-                nx.draw(G, pos, with_labels=True, labels=label_dict, node_size=500, node_color="lightblue", linewidths=0.25, font_size=10, font_weight="bold", width=0.25)
-                plt.show()
+                self.render_dot_string(dot_str, view=plot)
                 
             self.fault_trees.append(G)
             
