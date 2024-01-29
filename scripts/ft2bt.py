@@ -12,6 +12,7 @@ def main():
     parser.add_argument('-f', '--fta_filename', type=str, help="*.xml fault tree name", required=True)
     parser.add_argument('-r', '--render', action='store_true', help="Show the behavior tree render?")
     parser.add_argument('-v', '--view', action='store_true', help="View the behavior tree renders?")
+    parser.add_argument('-c', '--generate_cpp', action='store_true', help="Generate C++ code template?")
     args = parser.parse_args()
     
     # Get the path to the package
@@ -37,6 +38,9 @@ def main():
         bt.action_number = prev_bt.action_number
         bt.generate_from_fault_tree(fta)
         bt.generate_xml_file(folder_name=behavior_tree_folder, render=args.render, view=args.view)
+        
+        if args.generate_cpp:
+            bt.generate_main_cpp_file()
         prev_bt = bt
     
 

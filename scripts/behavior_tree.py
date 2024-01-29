@@ -2,6 +2,7 @@ import graphviz
 import os
 import xml.etree.ElementTree as ET
 import xml.dom.minidom as minidom
+from pathlib import Path
 
 from behavior_tree_node import BehaviorTreeNode
 
@@ -277,11 +278,97 @@ class BehaviorTree:
         pretty_xml_str = xml_parsed.toprettyxml(indent="  ")
 
         # Write to file
-        xml_file_path = os.path.join(folder_name, f'BT_{self.name}.xml')
-        with open(xml_file_path, 'w') as file:
+        self.xml_file_path = os.path.join(folder_name, f'BT_{self.name}.xml')
+        with open(self.xml_file_path, 'w') as file:
             file.write(pretty_xml_str)
             
         # Render and view the tree graphically using Graphviz if requested
         pdf_file_path = os.path.join(folder_name, 'render', f'BT_{self.name}')
         if render:
             self.render_graphviz_tree(filename=pdf_file_path, view=view)
+            
+    def parse_behavior_tree_xml(self):
+        """
+        Parse the behavior tree xml file and extract the behavior tree ID, actions, and conditions.
+        
+        Returns:
+            behavior_tree_name (str): Behavior tree ID
+            actions (set): Set of actions
+            conditions (set): Set of conditions
+        """
+        # Parse the XML file
+        tree = ET.parse(self.xml_file_path)
+        root = tree.getroot()
+
+        # Extract Behavior Tree Name
+        behavior_tree_name = self.xml_file_path.split('/')[-1].split('.')[0].split('BT_')[-1]
+
+        # Extract Actions and Conditions
+        actions = {node.get('ID') for node in root.findall(".//Action")}
+        conditions = {node.get('ID') for node in root.findall(".//Condition")}
+        actions.discard(None)
+        conditions.discard(None)
+
+        return behavior_tree_name, actions, conditions
+
+    def generate_main_cpp_file(self):
+        """
+        Generate the main.cpp file from the behavior tree xml file. This file is used to run the behavior tree in ROS.
+        """
+        behavior_tree_name, actions, conditions = self.parse_behavior_tree_xml()
+        
+        # Generate the main.cpp file template
+        main_cpp_template = \
+f"""#include <ros/package.h>
+#include <cstdlib>
+
+#include <behaviortree_cpp_v3/behavior_tree.h>
+#include <behaviortree_cpp_v3/bt_factory.h>
+#include <behaviortree_cpp_v3/loggers/bt_zmq_publisher.h>
+
+int main(int argc, char** argv)
+{{
+    ros::init(argc, argv, "safety_{behavior_tree_name}");
+    
+    ros::NodeHandle node;
+    
+    // Register ROS subscribers and publishers
+
+    BT::BehaviorTreeFactory factory;
+"""
+        # Add the action registrations
+        for action in actions:
+            main_cpp_template += \
+f"""    factory.registerNodeType<Actions>("{action}");\n"""
+        # Add the condition registrations
+        for condition in conditions:
+            main_cpp_template += \
+f"""    factory.registerNodeType<Conditions>("{condition}");\n"""
+
+        # Complete the template
+        main_cpp_template += \
+f"""    std::string bt_path = ros::package::getPath("safety") + "/trees/behavior_trees/" + "BT_{behavior_tree_name}.xml";
+    ROS_INFO("Loading behavior tree from file: %s", bt_path.c_str());
+
+    BT::Tree tree = factory.createTreeFromFile(bt_path);
+    BT::PublisherZMQ publisher_zmq(tree);
+    ros::Rate loop_rate(50);
+
+    while (ros::ok())
+    {{
+        tree.tickRoot();
+        ros::spinOnce();
+        loop_rate.sleep();
+    }}
+
+    return 0;
+}}"""
+        xml_file_path = Path(self.xml_file_path)
+        folder_name = xml_file_path.parent.parent / 'src'
+        main_cpp_template_file_path = folder_name / f'main_{behavior_tree_name}.cpp'
+        
+        if not main_cpp_template_file_path.exists():
+            folder_name.mkdir(parents=True, exist_ok=True)
+        
+        with open(main_cpp_template_file_path, 'w') as file:
+            file.write(main_cpp_template)
