@@ -1,7 +1,7 @@
 import graphviz
 import os
-import html
 import xml.etree.ElementTree as ET
+import xml.dom.minidom as minidom
 
 from behavior_tree_node import BehaviorTreeNode
 
@@ -180,22 +180,66 @@ class BehaviorTree:
             parent_element (ET.Element): Parent element
             node (BehaviorTreeNode): Node to add
         """
-        if node.node_type == 'Sequence':
-            bt_node = ET.SubElement(parent_element, 'Sequence', attrib={'name': node.label.strip('"')})
-        elif node.node_type == 'Fallback':
-            bt_node = ET.SubElement(parent_element, 'Fallback', attrib={'name': node.label.strip('"')})
-        elif node.node_type == 'Condition':
+        node_type = node.node_type.lower()
+        if node_type == 'sequence':
+            bt_node = ET.SubElement(parent_element, 'Sequence')
+        elif node_type == 'fallback':
+            bt_node = ET.SubElement(parent_element, 'Fallback')
+        elif node_type == 'condition':
             self.event_number += 1
             bt_node = ET.SubElement(parent_element, 'Condition', attrib={'ID': f'Event_{self.event_number}', 'name': node.label.strip('"')})
-        elif 'action' in node.node_type.lower() :
+        elif node_type =='action':
             self.action_number += 1
-            bt_node = ET.SubElement(parent_element, 'Action', attrib={'ID': f'Action_{self.action_number}', 'name': node.label.strip('"')})
+            name = node.label.strip('"').split(' ')[1:]
+            bt_node = ET.SubElement(parent_element, 'Action', attrib={'ID': f'Action_{self.action_number}', 'name': ' '.join(name)})
         else:
-            bt_node = ET.SubElement(parent_element, 'SubTree', attrib={'name': node.label.strip('"')})
+            node_type = 'root' if node.node_type == 'Root' else 'subtree'
+            bt_node = ET.SubElement(parent_element, 'SubTree', attrib={'ID': node.label.strip('"')})
         
         # Recursively add child nodes
         for child in node.children:
             self.add_nodes_xml(bt_node, child)
+            
+    def convert_xml_structure(self, original_xml):
+        """
+        Convert the XML structure to be compatible with BehaviorTree.CPP library.
+
+        Args:
+            original_xml (str): Original XML string
+
+        Returns:
+            str: Converted XML string compatible with BehaviorTree.CPP library
+        """
+        root = ET.fromstring(original_xml)
+
+        # Create a dictionary to store new BehaviorTrees for each SubTree
+        subtrees = {}
+
+        # Find all SubTrees and create corresponding new BehaviorTrees
+        for subtree in root.findall('.//SubTree'):
+            subtree_id = subtree.get('ID')
+            new_tree = ET.Element('BehaviorTree', ID=subtree_id)
+            new_tree.extend(subtree)
+            subtrees[subtree_id] = new_tree
+
+            # Replace original SubTree with a reference
+            ref_subtree = ET.Element('SubTree', ID=subtree_id)
+            subtree.clear()
+            subtree.attrib = ref_subtree.attrib
+        comment = ET.Comment(' ////////// ')
+        
+        # Append new BehaviorTrees to the root
+        for new_tree in subtrees.values():
+            root.append(comment)
+            root.append(new_tree)
+
+        # Construct the TreeNodesModel section (example, adjust as needed)
+        tree_nodes_model = ET.Element('TreeNodesModel')
+        for node_id in {'Condition', 'SubTree'}:  # Add other node types as needed
+            tree_nodes_model.append(ET.Element(node_id))
+        root.append(tree_nodes_model)
+
+        return ET.tostring(root, encoding='unicode')
             
     def generate_xml_file(self, folder_name, render=False, view=False):
         """
@@ -228,14 +272,14 @@ class BehaviorTree:
 
         # Generate XML string
         xml_str = ET.tostring(root, encoding='unicode')
-        
-        # Unescape HTML entities in the XML string
-        xml_str = html.unescape(xml_str)
+        converted_xml = self.convert_xml_structure(xml_str)
+        xml_parsed = minidom.parseString(converted_xml)
+        pretty_xml_str = xml_parsed.toprettyxml(indent="  ")
 
         # Write to file
         xml_file_path = os.path.join(folder_name, f'BT_{self.name}.xml')
         with open(xml_file_path, 'w') as file:
-            file.write(xml_str)
+            file.write(pretty_xml_str)
             
         # Render and view the tree graphically using Graphviz if requested
         pdf_file_path = os.path.join(folder_name, 'render', f'BT_{self.name}')
