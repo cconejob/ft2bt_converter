@@ -36,3 +36,6 @@ __pycache__/
 *.xml
 !fault_trees/*.xml
 *.pdf
+
+# Src files
+/src
