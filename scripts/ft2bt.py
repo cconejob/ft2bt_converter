@@ -25,14 +25,19 @@ def main():
     # Generate the fault tree diagram from the XML file
     fault_tree_xml_file = package_path / 'fault_trees' / args.fta_filename
     fta_parser = XMLFTAParser(xml_file=fault_tree_xml_file)
-    fta_list = fta_parser.generate_fault_trees()
+    fta_list = fta_parser.generate_fault_trees(render=args.render, plot=args.view)
 
     # Generate the behavior tree diagram from every fault tree diagram
     behavior_tree_folder = package_path / 'behavior_trees'
+    prev_bt = BehaviorTree(name='prev')
+    
     for fta in fta_list:
         bt = BehaviorTree(name=fta.name)
+        bt.event_number = prev_bt.event_number
+        bt.action_number = prev_bt.action_number
         bt.generate_from_fault_tree(fta)
         bt.generate_xml_file(folder_name=behavior_tree_folder, render=args.render, view=args.view)
+        prev_bt = bt
     
 
 if __name__ == "__main__":    
