@@ -3,6 +3,7 @@ from pathlib import Path
 
 from xml_fta_parser import XMLFTAParser
 from behavior_tree import BehaviorTree
+from code_generator import CodeGenerator
 
 
 def main():  
@@ -31,6 +32,7 @@ def main():
     # Generate the behavior tree diagram from every fault tree diagram
     behavior_tree_folder = package_path / 'behavior_trees'
     prev_bt = BehaviorTree(name='prev')
+    code_generator = CodeGenerator()
     
     for fta in fta_list:
         bt = BehaviorTree(name=fta.name)
@@ -40,8 +42,11 @@ def main():
         bt.generate_xml_file(folder_name=behavior_tree_folder, render=args.render, view=args.view)
         
         if args.generate_cpp:
-            bt.generate_main_cpp_file()
+            code_generator.generate_main_cpp_file(xml_file_path=bt.xml_file_path, bt_name=bt.name)
         prev_bt = bt
+        
+    if args.generate_cpp:
+        code_generator.save_in_file()
     
 
 if __name__ == "__main__":    
