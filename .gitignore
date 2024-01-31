@@ -42,3 +42,6 @@ __pycache__/
 
 # Include files
 /include
+
+# vscode files
+.vscode
