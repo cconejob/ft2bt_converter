@@ -174,7 +174,7 @@ class XMLFTAParser:
             view (bool): Whether to view the rendered graph
         """
         self.fault_tree_number += 1
-        graphviz.Source(dot_str).render(f'output_fault_tree_{self.fault_tree_number}.gv', view=view)
+        graphviz.Source(dot_str).render(f'output_fault_tree_{self.fault_tree_number}.gv', view=False)
         
     def find_root_nodes(self):
         """
