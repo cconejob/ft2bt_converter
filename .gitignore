@@ -39,3 +39,6 @@ __pycache__/
 
 # Src files
 /src
+
+# Include files
+/include
