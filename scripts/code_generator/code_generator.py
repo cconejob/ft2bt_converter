@@ -7,13 +7,27 @@ from code_generator.main_file import MainFile
 
 
 class CodeGenerator:
-    def __init__(self):
+    def __init__(self, replace=False, filename='fault_tree.xml'):
+        """
+        Generate the header and source files for the actions and conditions.
+
+        Args:
+            replace (bool, optional): Replace existing files? Defaults to False.
+            filename (str, optional): Name of the fault tree xml file. Defaults to 'fault_tree.xml'.
+        """
+        self.replace = replace
+        self.filename = filename.split('.')[:-1][0]
         self.actions_header = HeaderFile(type_header='actions')
         self.conditions_header = HeaderFile(type_header='conditions')
         self.actions_source = SourceFile(type_source='actions')
         self.conditions_source = SourceFile(type_source='conditions')
         self.main_cpp_file = MainFile()
         self.generate_generic_code()
+        
+        file_path = Path(__file__)
+        root_folder_name = file_path.parent.parent.parent
+        self.header_folder_name = root_folder_name / 'include' / self.filename
+        self.src_folder_name = root_folder_name / 'src' / self.filename
     
     def generate_generic_code(self):
         """
@@ -88,14 +102,11 @@ class CodeGenerator:
         main_cpp_template += self.main_cpp_file.end_main_function(bt_name)
         
         xml_file_path = Path(xml_file_path)
-        src_folder_name = xml_file_path.parent.parent / 'src'
+        src_folder_name = xml_file_path.parent.parent / 'src' / self.filename
         main_cpp_template_file_path = src_folder_name / f'main_{bt_name}.cpp'
         
-        if not main_cpp_template_file_path.exists():
-            src_folder_name.mkdir(parents=True, exist_ok=True)
-        
-        with open(main_cpp_template_file_path, 'w') as file:
-            file.write(main_cpp_template)
+        if not self.file_exists(main_cpp_template_file_path):
+            self.save_in_path(main_cpp_template, main_cpp_template_file_path)
             
         self.generate_libraries(xml_file_path, bt_name)
         
@@ -135,10 +146,42 @@ class CodeGenerator:
                 conditions_source_file_template += self.conditions_source.node_implementation(conditions[idx], bt_name, descriptions_cond[idx])
                 
                 self.save_in_file(conditions_header_file_template, conditions_source_file_template, conditions[idx], type='condition')
+                
+    def file_exists(self, file_path):
+        """
+        Check if the a file exists.
+
+        Args:
+            file_path (str): Path to the file
+        """
+        exists = file_path.exists()
+        name = file_path.name.split('/')[-1]
+
+        if exists and not self.replace:
+            print(f'File {name} already exists. Skipping...')
+            return True
+
+        else:
+            print(f'Saving {name} file...')
+            return False
+        
+    def save_in_path(self, file_template, file_path):
+        """
+        Save the content in the file. The file is saved in the include and src folders if replace is True or if the file does not exist.
+        
+        Args:
+            file_template (str): Template for the file
+            file_path (str): Path to the file
+        """
+        folder_name = file_path.parent          
+        if not file_path.exists():
+            folder_name.mkdir(parents=True, exist_ok=True)
+        with open(file_path, 'w') as file:
+            file.write(file_template)
 
     def save_in_file(self, header_file_template, source_file_template, name, type='condition'):
         """
-        Save the content in the file. The file is saved in the include and src folders.
+        Save the content in the file. The file is saved in the include and src folders if replace is True or if the file does not exist.
         
         Args:
             header_file_template (str): Template for the header file
@@ -146,22 +189,11 @@ class CodeGenerator:
             name (str): Name of the behavior tree condition or action
             type (str): Type of the file to save. Can be 'action' or 'condition'. Default is 'condition'
         """
-        file_path = Path(__file__)
-        root_folder_name = file_path.parent.parent.parent
+        header_file_path = self.header_folder_name / f'{type}s' / f'{name.lower()}.hpp'
+        source_file_path = self.src_folder_name / f'{type}s' / f'{name.lower()}.cpp'
         
-        header_folder_name = root_folder_name / 'include' / f'{type}s'
-        src_folder_name = root_folder_name / 'src' / f'{type}s'
-        header_file_path = header_folder_name / f'{name.lower()}.hpp'
-        source_file_path = src_folder_name / f'{name.lower()}.cpp'
-
-        # Save the conditions header file template
-        if not header_file_path.exists():
-            header_folder_name.mkdir(parents=True, exist_ok=True)
-        with open(header_file_path, 'w') as file:
-            file.write(header_file_template)
-        
-        # Save the actions source file template
-        if not source_file_path.exists():
-            src_folder_name.mkdir(parents=True, exist_ok=True)
-        with open(source_file_path, 'w') as file:
-            file.write(source_file_template)
+        if not self.file_exists(header_file_path):
+            self.save_in_path(header_file_template, header_file_path)
+            
+        if not self.file_exists(source_file_path):
+            self.save_in_path(source_file_template, source_file_path)
