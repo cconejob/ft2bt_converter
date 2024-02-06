@@ -36,10 +36,14 @@ class SourceFile:
             include_name = 'conditions'
             node_name = 'ConditionNode'
             extra = ''
+            return_type = 'BT::NodeStatus::FAILURE'
+            
         elif 'act' in self.type_source:
             include_name = 'actions'
             node_name = 'AsyncActionNode'
             extra = ', private_nh_("~")'
+            return_type = 'BT::NodeStatus::SUCCESS'
+        
         return \
 f"""#include <{include_name}/{name.lower()}.hpp>
 
@@ -50,9 +54,9 @@ f"""#include <{include_name}/{name.lower()}.hpp>
 
 BT::NodeStatus {name}::tick()
 {{
-    // TODO: Implement action for {bt_name} -> '{name}': {description}
+    {self.comment_tick(name, description, bt_name)}
     ROS_DEBUG("{name} is executing");
-    return BT::NodeStatus::SUCCESS;
+    return {return_type};
 }};
 
 BT::PortsList {name}::providedPorts()
@@ -61,3 +65,36 @@ BT::PortsList {name}::providedPorts()
 }};
 
 """
+    def comment_tick(self, name, description, bt_name):
+        """
+        Generate the comment for the tick function in the source file. The comment is the description of the node in the behavior tree.
+        
+        Args:
+            name (str): Name of the node in the behavior tree.
+            description (str): Description of the node in the behavior tree.
+            bt_name (str): Name of the behavior tree.
+        
+        Returns:
+            str: Comment for the source file.
+        """
+        if 'cond' in self.type_source:
+            text = \
+f"""// If Event: {description} occurs, then {bt_name} -> '{name}' is SUCCESS
+    // return BT::NodeStatus::SUCCESS;
+    
+    // If Event: {description} does not occur, then {bt_name} -> '{name}' is FAILURE
+    // return BT::NodeStatus::FAILURE;
+"""
+        elif 'act' in self.type_source:
+            text = \
+f"""// If Action: {description} is running, then {bt_name} -> '{name}' is RUNNING
+    // return BT::NodeStatus::RUNNING;
+    
+    // If Action: {description} has already finished, then {bt_name} -> '{name}' is SUCCESS
+    // return BT::NodeStatus::SUCCESS;
+"""
+        return \
+f"""// TODO: Implement action for {bt_name} -> '{name}': {description}
+
+    {text}"""
+
