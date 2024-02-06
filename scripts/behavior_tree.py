@@ -241,13 +241,12 @@ class BehaviorTree:
 
         return ET.tostring(root, encoding='unicode')
             
-    def generate_xml_file(self, folder_name, render=False, view=False):
+    def generate_xml_file(self, folder_name, view=False):
         """
         Generate a behavior tree XML compatible with BehaviorTree.CPP library and save it to a file.
         
         Args:
             folder_name (str): Folder name to save the XML file
-            render (bool, optional): Render the tree graphically using Graphviz. Defaults to False.
             view (bool, optional): Display the tree. Defaults to False.
         """
         root = ET.Element('root', attrib={'main_tree_to_execute': 'BehaviorTree'})
@@ -283,5 +282,5 @@ class BehaviorTree:
             
         # Render and view the tree graphically using Graphviz if requested
         pdf_file_path = os.path.join(folder_name, 'render', f'BT_{self.name}')
-        if render:
+        if view:
             self.render_graphviz_tree(filename=pdf_file_path, view=view)

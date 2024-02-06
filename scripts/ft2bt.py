@@ -11,9 +11,9 @@ def main():
     
     # Limit coordinates
     parser.add_argument('-f', '--fta_filename', type=str, help="*.xml fault tree name", required=True)
-    parser.add_argument('-r', '--render', action='store_true', help="Show the behavior tree render?")
     parser.add_argument('-v', '--view', action='store_true', help="View the behavior tree renders?")
     parser.add_argument('-c', '--generate_cpp', action='store_true', help="Generate C++ code template?")
+    parser.add_argument('-r', '--replace', action='store_true', help="Replace existing files?")
     args = parser.parse_args()
     
     # Get the path to the package
@@ -27,19 +27,19 @@ def main():
     # Generate the fault tree diagram from the XML file
     fault_tree_xml_file = package_path / 'fault_trees' / args.fta_filename
     fta_parser = XMLFTAParser(xml_file=fault_tree_xml_file)
-    fta_list = fta_parser.generate_fault_trees(render=args.render, plot=args.view)
+    fta_list = fta_parser.generate_fault_trees(plot=args.view)
 
     # Generate the behavior tree diagram from every fault tree diagram
     behavior_tree_folder = package_path / 'behavior_trees'
     prev_bt = BehaviorTree(name='prev')
-    code_generator = CodeGenerator()
+    code_generator = CodeGenerator(replace=args.replace, filename=args.fta_filename.lower())
     
     for fta in fta_list:
         bt = BehaviorTree(name=fta.name)
         bt.event_number = prev_bt.event_number
         bt.action_number = prev_bt.action_number
         bt.generate_from_fault_tree(fta)
-        bt.generate_xml_file(folder_name=behavior_tree_folder, render=args.render, view=args.view)
+        bt.generate_xml_file(folder_name=behavior_tree_folder, view=args.view)
         
         if args.generate_cpp:
             code_generator.generate_main_cpp_file(xml_file_path=bt.xml_file_path, bt_name=bt.name)

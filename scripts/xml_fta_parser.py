@@ -110,7 +110,7 @@ class XMLFTAParser:
             current_node = queue.pop(0)
             for edge in self.edges:
                 if edge[1] == current_node:
-                    source, target = edge
+                    source, _ = edge
                     subtree_edges.add(edge)
                     if source not in subtree_nodes:
                         subtree_nodes[source] = self.nodes[source]
@@ -174,7 +174,7 @@ class XMLFTAParser:
             view (bool): Whether to view the rendered graph
         """
         self.fault_tree_number += 1
-        graphviz.Source(dot_str).render(f'output_fault_tree_{self.fault_tree_number}.gv', view=False)
+        graphviz.Source(dot_str).render(f'output_fault_tree_{self.fault_tree_number}.gv', view=view)
         
     def find_root_nodes(self):
         """
@@ -200,12 +200,11 @@ class XMLFTAParser:
 
         return leaf_nodes
     
-    def generate_fault_trees(self, render=False, plot=False):
+    def generate_fault_trees(self, plot=False):
         """
         Generate the tree from the XML file. The tree is represented as a list of NetworkX graphs.
         
         Args:
-            render (bool): Whether to render the tree using Graphviz
             plot (bool): Whether to plot the tree using NetworkX
         
         Returns:
@@ -219,7 +218,7 @@ class XMLFTAParser:
             dot_str, G = self.create_graphviz_dot(root)
         
             # Create a graphviz dot render from the dot string if render is True
-            if render:
+            if plot:
                 self.render_dot_string(dot_str, view=plot)
                 
             self.fault_trees.append(G)
