@@ -19,11 +19,11 @@ class CodeGenerator:
         self.filename = filename.split('.')[:-1][0]
         self.actions_header = HeaderFile(type_header='actions')
         self.conditions_header = HeaderFile(type_header='conditions')
-        self.actions_source = SourceFile(type_source='actions')
-        self.conditions_source = SourceFile(type_source='conditions')
+        self.actions_source = SourceFile(filename=self.filename, type_source='actions')
+        self.conditions_source = SourceFile(filename=self.filename, type_source='conditions')
         self.main_cpp_file = MainFile()
         self.generate_generic_code()
-        
+
         file_path = Path(__file__)
         root_folder_name = file_path.parent.parent.parent
         self.header_folder_name = root_folder_name / 'include' / self.filename

@@ -1,12 +1,14 @@
 class SourceFile:
-    def __init__(self, type_source='condition'):
+    def __init__(self, filename, type_source='condition'):
         """
         Source file class. It is used to generate the source file for the C++ code.
 
         Args:
             type_source (str, optional): Type of the source file. Defaults to 'condition'. Options: 'condition', 'action'.
+            filename (str): Name of the entire project.
         """
         self.type_source = type_source
+        self.filename = filename
         
     def common_includes(self):
         """
@@ -45,7 +47,7 @@ class SourceFile:
             return_type = 'BT::NodeStatus::SUCCESS'
         
         return \
-f"""#include <{include_name}/{name.lower()}.hpp>
+f"""#include <{self.filename}/{include_name}/{name.lower()}.hpp>
 
 {name}::{name}(const std::string& name, const BT::NodeConfiguration& config)
     : {node_name}(name, config){extra}{{
