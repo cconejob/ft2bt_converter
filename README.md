@@ -40,9 +40,9 @@ The tool is designed to convert fault trees from draw.io diagram XML files into 
 
 ### Input Example: Fault Tree Diagram
 
-Below is an example of two fault tree diagrams generated in the same Draw.io file:
+Below is an example of a fault tree diagram generated in a Draw.io file:
 
-![Fault Tree Example](fault_trees/example_3.png)
+![Fault Tree Example](fault_trees/fta_example.png)
 
 ### Running the Conversion Tool
 
@@ -63,13 +63,10 @@ Where:
 
 ### Output Example: Behavior Tree Diagram
 
-Below is an example of the behavior tree diagrams generated from the two fault trees. The XML file is loaded using [Groot](https://github.com/BehaviorTree/Groot):
+Below is an example of the behavior tree diagrams generated from the fault tree. The XML file is loaded using [Groot](https://github.com/BehaviorTree/Groot):
 
-The first behavior tree example represents the monitorisation of the control module (AVCM).
-![Behavior Tree Example 1](behavior_trees/render/BT_avcm.png)
-
-The second behavior tree represents the monitorisation of the localisation module (AVLS).
-![Behavior Tree Example 2](behavior_trees/render/BT_avls.png)
+The order of the events is randomly selected in this version of the software. Future versions will sort the events by probability of occurrence.
+![Behavior Tree Example 1](behavior_trees/render/BT_hz_01.svg)
 
 ## Contact Information and Acknowledgement
 
