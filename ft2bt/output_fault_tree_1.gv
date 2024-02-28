@@ -1,0 +1,15 @@
+digraph G1{
+    "q0qpfPP1tsVZHwIgW9Ie-36" [label="HZ_01", shape="box"];
+    "q0qpfPP1tsVZHwIgW9Ie-61" [label="OR", shape="triangle"];
+    "q0qpfPP1tsVZHwIgW9Ie-38" [label="E11", shape="box"];
+    "q0qpfPP1tsVZHwIgW9Ie-66" [label="E10", shape="box"];
+    "q0qpfPP1tsVZHwIgW9Ie-194" [label="AND", shape="invtriangle"];
+    "q0qpfPP1tsVZHwIgW9Ie-191" [label="E12A", shape="box"];
+    "q0qpfPP1tsVZHwIgW9Ie-193" [label="E12B", shape="box"];
+    "q0qpfPP1tsVZHwIgW9Ie-61" -> "q0qpfPP1tsVZHwIgW9Ie-36";
+    "q0qpfPP1tsVZHwIgW9Ie-66" -> "q0qpfPP1tsVZHwIgW9Ie-61";
+    "q0qpfPP1tsVZHwIgW9Ie-191" -> "q0qpfPP1tsVZHwIgW9Ie-194";
+    "q0qpfPP1tsVZHwIgW9Ie-38" -> "q0qpfPP1tsVZHwIgW9Ie-61";
+    "q0qpfPP1tsVZHwIgW9Ie-194" -> "q0qpfPP1tsVZHwIgW9Ie-61";
+    "q0qpfPP1tsVZHwIgW9Ie-193" -> "q0qpfPP1tsVZHwIgW9Ie-194";
+}

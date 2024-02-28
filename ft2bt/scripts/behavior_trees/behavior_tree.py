@@ -3,7 +3,7 @@ import os
 import xml.etree.ElementTree as ET
 import xml.dom.minidom as minidom
 
-from behavior_tree_node import BehaviorTreeNode
+from behavior_trees.behavior_tree_node import BehaviorTreeNode
 
 
 class BehaviorTree:

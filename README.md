@@ -53,15 +53,16 @@ Below is an example of a fault tree diagram generated in a Draw.io file:
 3. Run the conversion command:
 
     ```bash
-    python3 scripts/ft2bt.py [-h] -f FTA_FILENAME [-r] [-v] [-c]
+    cd ft2bt/scripts
+    python3 ft2bt.py [-h] -f FTA_FILENAME [-v] [-c] [-r]
     ```
 
 Where:
 
-* **-f**: (Required) Specifies the XML filename of the draw.io diagram.
-* **-r**: (Optional) Enables renderization of the output. Defaults to false.
-* **-v**: (Optional) Automatically shows the renders if renderization (**-r**) is true. Defaults to false.
+* **-f**: (Required) Specifies the XML global filepath name of the draw.io diagram.
+* **-v**: (Optional) Automatically shows and saves the renders. Defaults to false.
 * **-c**: (Optional) Generate a cpp ROS node template for the behavior tree. Defaults to false.
+* **-r**: (Optional) Replaces current code if previously generated and -c is set to True.
 
 ### Output Example: Behavior Tree Diagram
 

@@ -7,7 +7,7 @@ from code_generator.main_file import MainFile
 
 
 class CodeGenerator:
-    def __init__(self, replace=False, filename='fault_tree.xml'):
+    def __init__(self, replace=False, filename='fault_tree'):
         """
         Generate the header and source files for the actions and conditions.
 
@@ -16,7 +16,7 @@ class CodeGenerator:
             filename (str, optional): Name of the fault tree xml file. Defaults to 'fault_tree.xml'.
         """
         self.replace = replace
-        self.filename = filename.split('.')[:-1][0]
+        self.filename = filename
         self.actions_header = HeaderFile(type_header='actions')
         self.conditions_header = HeaderFile(type_header='conditions')
         self.actions_source = SourceFile(filename=self.filename, type_source='actions')
