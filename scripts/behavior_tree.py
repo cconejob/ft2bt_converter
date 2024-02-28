@@ -170,7 +170,7 @@ class BehaviorTree:
         Returns:
             str: Behavior tree name
         """
-        return self.nodes[node_id].children[0].label.split(' ')[0].strip('"').lower()
+        return self.nodes[node_id].label.split(' ')[0].strip('"').lower()
             
     def add_nodes_xml(self, parent_element, node):
         """
