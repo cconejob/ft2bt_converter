@@ -280,6 +280,8 @@ class BehaviorTree:
         with open(self.xml_file_path, 'w') as file:
             file.write(pretty_xml_str)
             
+        print(f'Behavior tree XML file saved to {self.xml_file_path}')
+            
         # Render and view the tree graphically using Graphviz if requested
         pdf_file_path = os.path.join(folder_name, 'render', f'BT_{self.name}')
         if view:
