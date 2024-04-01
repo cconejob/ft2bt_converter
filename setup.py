@@ -6,7 +6,7 @@ with open('requirements.txt') as f:
 
 setup(
     name='ft2bt',
-    version='0.1.0',
+    version='0.1.1',
     packages=find_packages(),
     install_requires=required,  # Use the list from requirements.txt
     entry_points={
