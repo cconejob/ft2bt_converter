@@ -14,6 +14,7 @@ def main():
     parser.add_argument('-v', '--view', action='store_true', help="View the behavior tree renders?")
     parser.add_argument('-c', '--generate_cpp', action='store_true', help="Generate C++ code template?")
     parser.add_argument('-r', '--replace', action='store_true', help="Replace existing files?")
+    parser.add_argument('-o', '--output_folder', type=str, help="Output folder for the behavior trees.")
     args = parser.parse_args()
     
     # Get the path to the package
@@ -31,11 +32,17 @@ def main():
     fta_parser = XMLFTAParser(xml_file=args.fta_filepath)
     fta_list = fta_parser.generate_fault_trees(plot=args.view)
 
-    # Generate the behavior tree diagram from every fault tree diagram
-    behavior_tree_folder = package_path / 'behavior_trees'
+    # Initialize the behavior tree and code generator objects
     prev_bt = BehaviorTree(name='prev')
     code_generator = CodeGenerator(replace=args.replace, filename=fta_filename.lower())
     
+    # Create the folder for the behavior trees
+    if args.output_folder:
+        behavior_tree_folder = args.output_folder
+    else:
+        behavior_tree_folder = package_path / 'behavior_trees'
+    
+    # Generate the behavior tree diagram from every fault tree diagram
     for fta in fta_list:
         bt = BehaviorTree(name=fta.name)
         bt.event_number = prev_bt.event_number
