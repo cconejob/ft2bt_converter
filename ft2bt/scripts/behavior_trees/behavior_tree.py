@@ -3,7 +3,7 @@ import os
 import xml.etree.ElementTree as ET
 import xml.dom.minidom as minidom
 
-from behavior_trees.behavior_tree_node import BehaviorTreeNode
+from .behavior_tree_node import BehaviorTreeNode
 
 
 class BehaviorTree:
@@ -279,6 +279,8 @@ class BehaviorTree:
         self.xml_file_path = os.path.join(folder_name, f'BT_{self.name}.xml')
         with open(self.xml_file_path, 'w') as file:
             file.write(pretty_xml_str)
+            
+        print(f'Behavior tree XML file saved to {self.xml_file_path}')
             
         # Render and view the tree graphically using Graphviz if requested
         pdf_file_path = os.path.join(folder_name, 'render', f'BT_{self.name}')

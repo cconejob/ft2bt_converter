@@ -1,9 +1,9 @@
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-from code_generator.header_file import HeaderFile
-from code_generator.source_file import SourceFile
-from code_generator.main_file import MainFile
+from .header_file import HeaderFile
+from .source_file import SourceFile
+from .main_file import MainFile
 
 
 class CodeGenerator:

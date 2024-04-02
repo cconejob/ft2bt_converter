@@ -6,7 +6,7 @@ with open('requirements.txt') as f:
 
 setup(
     name='ft2bt',
-    version='0.1.0',
+    version='0.1.1',
     packages=find_packages(),
     install_requires=required,  # Use the list from requirements.txt
     entry_points={
@@ -20,10 +20,10 @@ setup(
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
     url='https://github.com/cconejob/ft2bt',
-    license='MIT',
+    license='GNU GPLv3',
     classifiers=[
         'Programming Language :: Python :: 3',
-        'License :: OSI Approved :: GNU General Public License v3.0 (GPLv3)',
+        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Operating System :: OS Independent',
     ],
     python_requires='>=3.6',

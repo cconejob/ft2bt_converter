@@ -1,9 +1,9 @@
 import argparse
 from pathlib import Path
 
-from fault_trees.xml_fta_parser import XMLFTAParser
-from behavior_trees.behavior_tree import BehaviorTree
-from code_generator.code_generator import CodeGenerator
+from ft2bt.scripts.fault_trees.xml_fta_parser import XMLFTAParser
+from ft2bt.scripts.behavior_trees.behavior_tree import BehaviorTree
+from ft2bt.scripts.code_generator.code_generator import CodeGenerator
 
 
 def main():  
