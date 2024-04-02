@@ -37,7 +37,7 @@ The tool is designed to convert fault trees from draw.io diagram XML files into 
 Below is an example of a fault tree diagram generated in a Draw.io file:
 
 <p align="center">
-  <img src="fault_trees/fta_example.png" alt="Fault Tree Example">
+  <img src="ft2bt/test/fault_trees/fta_example.png" alt="Fault Tree Example">
 </p>
 
 ### Running the Conversion Tool
@@ -63,7 +63,7 @@ Below is an example of the behavior tree diagrams generated from the fault tree.
 The order of the events is randomly selected in this version of the software. Future versions will sort the events by probability of occurrence.
 
 <p align="center">
-  <img src="behavior_trees/render/BT_hz_01.svg" alt="Behavior Tree Conversion Example" height="400"> <!-- or you can set the height instead -->
+  <img src="ft2bt/test/behavior_trees/render/BT_hz_01.svg" alt="Behavior Tree Conversion Example" height="400"> <!-- or you can set the height instead -->
 </p>
 
 ## Contact Information and Acknowledgement
