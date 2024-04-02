@@ -19,7 +19,7 @@ setup(
     description='Automatic conversion from fault trees into behavior trees',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
-    url='https://github.com/cconejob/ft2bt',
+    url='https://github.com/cconejob/ft2bt_converter.git',
     license='GNU GPLv3',
     classifiers=[
         'Programming Language :: Python :: 3',
