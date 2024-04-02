@@ -130,3 +130,14 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+# VSCode settings
+.vscode/
+
+# Other
+/ft2bt/*.pdf
+/behavior_trees/*.xml
+/behavior_trees/*.json
+/behavior_trees/render/*.pdf
+/include
+/src
