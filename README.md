@@ -6,16 +6,10 @@ This project focuses on the conversion of fault trees, represented in draw.io di
 
 ## Installation
 
-1. Clone the repository to your local machine.
-
-2. Ensure you have Python installed.
-
-3. Install the required dependencies by running the following command in the project directory.
+Install with PyPI:
 
 ```bash
-git clone git@github.com:cconejob/trees.git
-cd trees
-pip install -r requirements.txt
+pip install ft2bt
 ```
 
 ## Usage
@@ -48,14 +42,11 @@ Below is an example of a fault tree diagram generated in a Draw.io file:
 
 ### Running the Conversion Tool
 
-1. Ensure you have the required XML file from draw.io in the /fault_trees folder.
-2. Open a terminal or command prompt and navigate to the project directory.
-3. Run the conversion command:
+Run the conversion command:
 
-    ```bash
-    cd ft2bt/scripts
-    python3 ft2bt.py [-h] -f FTA_FILENAME [-v] [-c] [-r]
-    ```
+```bash
+ft2bt [-h] -f FTA_FILENAME [-v] [-c] [-r] [-o]
+```
 
 Where:
 
@@ -63,6 +54,7 @@ Where:
 * **-v**: (Optional) Automatically shows and saves the renders. Defaults to false.
 * **-c**: (Optional) Generate a cpp ROS node template for the behavior tree. Defaults to false.
 * **-r**: (Optional) Replaces current code if previously generated and -c is set to True.
+* **-o**: (Optional) Specifies the global folder path, where the behavior tree XML diagram is saved.
 
 ### Output Example: Behavior Tree Diagram
 
