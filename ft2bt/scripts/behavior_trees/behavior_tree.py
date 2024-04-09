@@ -2,6 +2,7 @@ import graphviz
 import os
 import xml.etree.ElementTree as ET
 import xml.dom.minidom as minidom
+import networkx as nx
 
 from .behavior_tree_node import BehaviorTreeNode
 
@@ -13,13 +14,21 @@ class BehaviorTree:
     
     Args:
         name (str, optional): Name of the behavior tree. Defaults to str().
+        probabilistic (bool, optional): Whether the behavior tree is probabilistic. Defaults to False.
     """
-    def __init__(self, name=str()):
+    def __init__(self, name=str(), probabilistic=False):
         self.nodes = dict()
         self.action = bool()
         self.name = name
         self.event_number = int()
         self.action_number = int()
+        self.probabilistic = probabilistic
+        
+        # Probabilistic behavior tree attributes
+        if probabilistic:
+            self.node_probabilities = dict()
+            self.node_levels = dict()
+            self.max_level = int()
 
     def add_node(self, node_id, node_type, label=None):
         """
@@ -81,6 +90,118 @@ class BehaviorTree:
                 
             self.add_node(node_id, node_type, label=node_label)
             
+    def extract_node_levels(self, fault_tree):
+        """
+        Extract the levels of the nodes in the fault tree
+        
+        Args:
+            fault_tree (nx.DiGraph): Fault tree
+        """
+        # Get the levels of the nodes in the fault tree
+        levels = dict(nx.shortest_path_length(fault_tree.reverse()))
+        
+        # Extract the maximum level of the nodes
+        for node_id, level in levels.items():
+            for key, value in level.items():
+                max_value = max(value, max_value) if 'max_value' in locals() else value
+            self.nodes[node_id].level = max_value
+            self.max_level = max(max_value, self.max_level) if 'self.max_level' in locals() else max_value
+            
+    def sort_nodes_probability_level(self, fault_tree):
+        """
+        Sort the nodes based on their probability and level
+        
+        Args:
+            fault_tree (nx.DiGraph): Fault tree
+        """
+        # For each level in the fault tree
+        for i in range(self.max_level + 1)[::-1]:
+            
+            # For each node in the fault tree
+            for node_id in fault_tree.nodes:
+                
+                # If the node is at the current level
+                if self.nodes[node_id].level == i:
+                    
+                    # Sort the children of the node based on their probability (from highest to lowest)
+                    if len(self.nodes[node_id].children) > 1:
+                        self.nodes[node_id].children = sorted(self.nodes[node_id].children, key=lambda x: x.probability, reverse=True)
+        
+    def add_node_probabilities(self, fault_tree):
+        """
+        Add probabilities to the nodes of the behavior tree
+        
+        Args:
+            fault_tree (nx.DiGraph): Fault tree
+        """
+        # Calculate the probability of each node
+        for node_id in fault_tree.nodes:
+            self.calculate_node_probability(node_id, fault_tree)
+                
+    def calculate_node_probability_sequence(self, node_id, fault_tree):
+        """
+        Calculate the probability of a sequence node based on its children
+        
+        Args:
+            node_id (str): Node ID
+            fault_tree (nx.DiGraph): Fault tree
+            
+        Returns:
+            float: Probability of the node
+        """
+        p = 1.0
+        for child in fault_tree.successors(node_id):
+            if child not in self.node_probabilities:
+                self.calculate_node_probability(child, fault_tree)
+            p *= self.node_probabilities[child]
+            
+        return p
+        
+    def calculate_node_probability_fallback(self, node_id, fault_tree):
+        """
+        Calculate the probability of a fallback node based on its children
+        
+        Args:
+            node_id (str): Node ID
+            fault_tree (nx.DiGraph): Fault tree
+            
+        Returns:
+            float: Probability of the node
+        """
+        p = 1.0
+        for child in fault_tree.successors(node_id):
+            if child not in self.node_probabilities:
+                self.calculate_node_probability(child, fault_tree)
+            p *= 1 - self.node_probabilities[child]
+            
+        return 1 - p
+            
+    def calculate_node_probability(self, node_id, fault_tree):
+        """
+        Calculate the probability of a node based on its children
+        
+        Args:
+            node_id (str): Node ID
+            fault_tree (nx.DiGraph): Fault tree
+        """     
+        if self.nodes[node_id].probability is not None:
+            return
+          
+        if self.probabilistic and self.nodes[node_id].node_type == 'Condition':
+            p = self.node_probabilities[node_id] if node_id in self.node_probabilities else 0.0
+        
+        elif self.nodes[node_id].node_type == 'Sequence':
+            p = self.calculate_node_probability_sequence(node_id, fault_tree)
+        
+        elif self.nodes[node_id].node_type == 'Fallback':
+            p = self.calculate_node_probability_fallback(node_id, fault_tree)
+            
+        else:
+            return
+            
+        self.nodes[node_id].probability = p 
+        self.node_probabilities[node_id] = p
+                    
     def classify_edge(self, source, target, fault_tree):
         """
         Classify an edge and add it to the behavior tree
@@ -159,7 +280,13 @@ class BehaviorTree:
         # Add edges based on the digraph structure of the reversed graph
         for source, target in fault_tree.edges():
             self.classify_edge(source, target, fault_tree)
-            
+        
+        # Add probabilities to the nodes if the behavior tree is probabilistic
+        if self.probabilistic:
+            self.add_node_probabilities(fault_tree)
+            self.extract_node_levels(fault_tree)
+            self.sort_nodes_probability_level(fault_tree)
+
         if self.action:
             self.postprocess_tree()
         
