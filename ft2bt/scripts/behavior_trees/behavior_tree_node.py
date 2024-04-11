@@ -10,4 +10,4 @@ class BehaviorTreeNode:
         self.label = label
         self.probability = probability
         self.level = 0
-        self.parent = None
+        self.asil = None
