@@ -296,6 +296,14 @@ class BehaviorTree:
             self.add_node(sequence_hz_id, 'Sequence', label='Sequence')
             self.nodes[hazard_id].children.append(self.nodes[sequence_hz_id])
             
+            # Check if all safety states are the same independently on the operating scenario.
+            equivalent_safety_states, ss_id, max_asil = self.check_safety_states(operating_scenario_dict)
+            if equivalent_safety_states:
+                self.add_node(ss_id, 'Action', label=ss_id)
+                self.nodes[sequence_hz_id].children.append(self.nodes[ss_id])
+                self.nodes[hazard_id].asil = max_asil
+                continue
+            
             # Add FallBack node for each hazard
             fallback_id = f'fallback_{hazard_id}'
             self.add_node(fallback_id, 'Fallback', label='Fallback')
@@ -340,20 +348,18 @@ class BehaviorTree:
             bt (BehaviorTree): Behavior tree of the hazard detection
             hara_dict (dict): HARA data
         """
+        # For node in the Hazard Detection BT
         for _, node in bt.nodes.items():
             node_label = node.label.strip('"')
-            
             # Get the HARA data for the root node
             if node.node_type == 'Root':
                 node.node_type = 'Subtree'
                 node.node_label = node_label + '_HARA'
                 for key in hara_dict.keys():
                     if node_label in hara_dict[key].keys():
-                        # TO-DO: Add the detection logic to the behavior tree of the HARA
-                        sequence_hz_id = f'sequence_{node_label}'
-                        for child in node.children:
-                            if child.node_type in ['Sequence', 'Fallback', 'Condition']:
-                                self.nodes[sequence_hz_id].children.insert(0, child)
+                        id = f'sequence_{node_label}'
+                        if id in self.nodes.keys():
+                            self.nodes[id].children.insert(0, node.children[0])
                                 
     def sort_nodes_asil(self, node_id):
         """
@@ -363,6 +369,22 @@ class BehaviorTree:
             node_id (str): Node ID
         """
         self.nodes[node_id].children = sorted(self.nodes[node_id].children, key=lambda x: x.asil, reverse=True)
+        
+    def check_safety_states(self, operating_scenario_dict):
+        """
+        Check if safety states are the same for a hazard in the diverse operating scenario
+        
+        Args:
+            operating_scenario_dict: OS data
+        """
+        ss_list = list()
+        asil_list = list()
+        
+        for os in operating_scenario_dict.keys():
+            ss_list.append(operating_scenario_dict[os]['Safety_State_ID'])
+            asil_list.append(operating_scenario_dict[os]['ASIL'])
+
+        return len(set(ss_list)) == 1, f'action_{ss_list[0]}', max(asil_list)
                                 
     """
     ==============================================
