@@ -68,13 +68,17 @@ def main():
         # Attach the singular hazard detection nodes to the HARA behavior tree
         if hara_available:
             bt_hara.attach_hazard_detection(bt, hara_generator.hara_dict)
-            bt_hara.generate_xml_file(folder_name=behavior_tree_folder, view=args.view)
 
         # Generate the C++ code template for the behavior tree if the flag is set
-        if args.generate_cpp:
+        if args.generate_cpp and not hara_available:
             code_generator.generate_main_cpp_file(xml_file_path=bt.xml_file_path, bt_name=bt.name)
             
         prev_bt = bt
+        
+    if hara_available:
+        bt_hara.generate_xml_file(folder_name=behavior_tree_folder, view=args.view)
+        if args.generate_cpp:
+            code_generator.generate_main_cpp_file(xml_file_path=bt_hara.xml_file_path, bt_name=bt_hara.name)
         
 
 if __name__ == "__main__":    
