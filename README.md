@@ -25,12 +25,21 @@ The tool is designed to convert fault trees from draw.io diagram XML files into 
     * **Events**: Depict events using circles. These are also required elements.
     * **Actions**: Actions can be represented by processes. Including actions is optional but helpful to clarify how the hazard should be handled.
     * **AND/OR Gates**: Use the respective symbols for AND/OR gates in your diagram. These are required for depicting logical relationships in the fault tree.
+    * **Probabilities**: Use text below the events to indicate the correspondent probability. Example: `p = 0.1`. These elements are not required.
 3. **Exporting the Diagram as XML**:
     * Once your fault tree diagram is ready, you need to export it in XML format. In draw.io, go to `File` > `Export as` > `XML` to save your diagram as an XML file.
-4. **Save the XML File in the `/fault_trees` Folder**:
-    * After exporting your diagram as an XML file, save it in the `/fault_trees` folder within the project directory.
 
-**Warning!**: All the fault tree elements need to be connected by directional arrows. Ensure that all of them are physically attached to their related elements.
+**Warning!**: All the fault tree elements (but text probabilities) need to be connected by directional arrows. Ensure that all of them are physically attached to their related elements.
+
+### Preparing Your Hazard Analysis and Risk Assessment (Opitonal)
+
+Create a *.csv file with some required column names:
+
+1. **Item_ID**: Identificator of the Item analyzed.
+2. **Hazard_ID**:  Identificator of the possible Hazard. The ID must match with the name of the correspondent Hazard in the Fault Tree.
+3. **Operating_Scenario_ID**: Identificator of the Operating Scenario.
+4. **ASIL**: Automotive Safety Integrity Level. Options: A, B, C, D
+5. **Safety_State_ID**: Identificator of the Safety State action.
 
 ### Input Example: Fault Tree Diagram
 
@@ -45,7 +54,7 @@ Below is an example of a fault tree diagram generated in a Draw.io file:
 Run the conversion command:
 
 ```bash
-ft2bt [-h] -f FTA_FILENAME [-v] [-c] [-r] [-o]
+ft2bt [-h] -f FTA_FILEPATH [-v] [-c] [-r] [-o OUTPUT_FOLDER] [-p] [-H HARA_FILEPATH]
 ```
 
 Where:
@@ -55,6 +64,8 @@ Where:
 * **-c**: (Optional) Generate a cpp ROS node template for the behavior tree. Defaults to false.
 * **-r**: (Optional) Replaces current code if previously generated and -c is set to True.
 * **-o**: (Optional) Specifies the global folder path, where the behavior tree XML diagram is saved.
+* **-p**: (Optional) Probabilities are considered to sort the behavior tree nodes.
+* **-H**: (Optional) Specifies the CSV global file name of the Hazard Analysis and Risk Assessment (HARA).
 
 ### Output Example: Behavior Tree Diagram
 
