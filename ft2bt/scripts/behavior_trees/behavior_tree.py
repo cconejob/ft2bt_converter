@@ -274,6 +274,9 @@ class BehaviorTree:
         Args:
             hazard_dict (dict): HARA data
         """
+        # Initialize dictionary for maximum ASIL for each hazard
+        hz_asil = dict()
+        
         # Add item as a root node
         self.add_node(self.name, 'Root', label=self.name)
         
@@ -286,6 +289,7 @@ class BehaviorTree:
             # Add hazard as a subtree node
             self.add_node(hazard_id, 'Subtree', label=hazard_id)
             self.nodes[fallback_root_id].children.append(self.nodes[hazard_id])
+            hz_asil[hazard_id] = list()
             
             # Add Sequence node for each hazard
             sequence_hz_id = f'sequence_{hazard_id}'
@@ -302,6 +306,7 @@ class BehaviorTree:
                 asil = data['ASIL']
                 sequence_id = f'sequence_{operating_scenario_id}'
                 safety_state_id = data['Safety_State_ID']
+                hz_asil[hazard_id].append(asil)
                 
                 # Create a Sequence node for each operating scenario
                 self.add_node(sequence_id, 'Sequence', label='Sequence')
@@ -317,9 +322,16 @@ class BehaviorTree:
                 safety_state_id = f'action_{safety_state_id}'
                 self.add_node(safety_state_id, 'Action', label=safety_state_id)
                 self.nodes[sequence_id].children.append(self.nodes[safety_state_id])           
-                
+            
+            # Sort Operating Scenario verification by ASIL
             self.sort_nodes_asil(fallback_id)
             
+            # Get ASIL level of the Hazard
+            self.nodes[hazard_id].asil = sorted(hz_asil[hazard_id])[-1]
+            
+        # Find the HZ ASIL level from the maximum Operating Scenario ASIL
+        self.sort_nodes_asil(fallback_root_id)
+        
     def attach_hazard_detection(self, bt, hara_dict):
         """
         Attach hazard detection to the behavior tree nodes
@@ -340,7 +352,7 @@ class BehaviorTree:
                         # TO-DO: Add the detection logic to the behavior tree of the HARA
                         sequence_hz_id = f'sequence_{node_label}'
                         for child in node.children:
-                            if child.node_type == 'Fallback' or child.node_type == 'Sequence':
+                            if child.node_type in ['Sequence', 'Fallback', 'Condition']:
                                 self.nodes[sequence_hz_id].children.insert(0, child)
                                 
     def sort_nodes_asil(self, node_id):
