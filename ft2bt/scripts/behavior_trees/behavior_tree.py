@@ -7,6 +7,12 @@ import networkx as nx
 from .behavior_tree_node import BehaviorTreeNode
 
 
+"""
+======================================
+BEHAVIOR TREE CLASS
+======================================
+"""
+
 class BehaviorTree:
     """
     Behavior tree class.
@@ -18,7 +24,6 @@ class BehaviorTree:
     """
     def __init__(self, name=str(), probabilistic=False):
         self.nodes = dict()
-        self.action = bool()
         self.name = name
         self.event_number = int()
         self.action_number = int()
@@ -29,6 +34,12 @@ class BehaviorTree:
             self.node_probabilities = dict()
             self.node_levels = dict()
             self.max_level = int()
+            
+    """
+    ==============================================
+    - ADD ELEMENTS TO BEHAVIOR TREE
+    ==============================================
+    """
 
     def add_node(self, node_id, node_type, label=None):
         """
@@ -51,44 +62,89 @@ class BehaviorTree:
         """
         self.nodes[parent_id].children.append(self.nodes[child_id])
         
+    def get_behavior_tree_name(self, node_id):
+        """
+        Get the behavior tree name from the nodes
+        
+        Returns:
+            str: Behavior tree name
+        """
+        return self.nodes[node_id].label.split(' ')[0].strip('"').lower()
+        
+    """
+    ==============================================
+    - CONVERSION FROM FAULT TREES
+    ==============================================
+    """
+    
+    def generate_from_fault_tree(self, fault_tree):
+        """
+        Generate a behavior tree from the fault tree NetworkX graph
+        
+        Args:
+            fault_tree (nx.DiGraph): Fault tree
+        """
+        # Reverse the fault tree to start from the root nodes
+        fault_tree = fault_tree.reverse()
+        
+        # Classify nodes and add them to the behavior tree
+        for node_id in fault_tree.nodes:
+            self.classify_node(node_id, fault_tree)
+        
+        # Add edges based on the digraph structure of the reversed graph
+        for source, target in fault_tree.edges():
+            self.classify_edge(source, target, fault_tree)
+        
+        # Add probabilities to the nodes if the behavior tree is probabilistic
+        if self.probabilistic:
+            self.add_node_probabilities(fault_tree)
+            self.extract_node_levels(fault_tree)
+            self.sort_nodes_probability_level(fault_tree)
+        
     def classify_node(self, node_id, fault_tree):
         """
-        Classify a node and add it to the behavior tree
+        Classify a fault tree node and add it to the behavior tree
         
         Args:
             node_id (str): Node ID
             fault_tree (nx.DiGraph): Fault tree
         """
         node_label = fault_tree.nodes[node_id].get('label', '')
-            
-        # If the node is an action node, create a sequence node and a new node representing the action
-        if 'action' in node_label.lower():
-            self.action = True
-            
-            # For action nodes, create a sequence node and a new node representing the action
-            sequence_node_id = f'sequence_{node_id}'
-            action_node_id = f'action_{node_id}'
-            self.add_node(sequence_node_id, 'Sequence', label='Sequence')
-            self.add_node(action_node_id, 'Action', label=node_label)
-
-            # Link the action node to the sequence node
-            self.add_edge(sequence_node_id, action_node_id)
         
         # If the node is another type of node, add it to the behavior tree
+        if fault_tree.in_degree(node_id) == 0:
+            node_type = 'Root'
+        elif fault_tree.out_degree(node_id) == 0:
+            node_type = 'Condition'
         else:
-            if fault_tree.in_degree(node_id) == 0:
-                node_type = 'Root'
-            elif fault_tree.out_degree(node_id) == 0:
-                node_type = 'Condition'
+            if "AND" in node_label:
+                node_type = "Sequence" 
+            elif "OR" in node_label:
+                node_type = "Fallback"    
             else:
-                if "AND" in node_label:
-                    node_type = "Sequence" 
-                elif "OR" in node_label:
-                    node_type = "Fallback"    
-                else:
-                    node_type = "Subtree"
+                node_type = "Subtree"
                 
-            self.add_node(node_id, node_type, label=node_label)
+        self.add_node(node_id, node_type, label=node_label)
+            
+    def classify_edge(self, source, target, fault_tree):
+        """
+        Classify an edge and add it to the behavior tree
+
+        Args:
+            source (str): Source node ID
+            target (str): Target node ID
+            fault_tree (nx.DiGraph): Fault tree
+        """
+        source_label = fault_tree.nodes[source].get('label', '')
+            
+        # If the node is an action node, link it to the sequence node
+        if 'action' in source_label.lower():
+            sequence_node_id = f'sequence_{source}'
+            self.add_edge(sequence_node_id, target)
+        
+        # If the node is another type of node, link it to its parent
+        else:
+            self.add_edge(source, target)
             
     def extract_node_levels(self, fault_tree):
         """
@@ -116,16 +172,19 @@ class BehaviorTree:
         """
         # For each level in the fault tree
         for i in range(self.max_level + 1)[::-1]:
-            
             # For each node in the fault tree
             for node_id in fault_tree.nodes:
-                
                 # If the node is at the current level
                 if self.nodes[node_id].level == i:
-                    
                     # Sort the children of the node based on their probability (from highest to lowest)
                     if len(self.nodes[node_id].children) > 1:
                         self.nodes[node_id].children = sorted(self.nodes[node_id].children, key=lambda x: x.probability, reverse=True)
+                        
+    """
+    ================================================
+    * Consider Fault Tree Probabilities
+    ================================================
+    """
         
     def add_node_probabilities(self, fault_tree):
         """
@@ -156,7 +215,7 @@ class BehaviorTree:
             p *= self.node_probabilities[child]
             
         return p
-        
+    
     def calculate_node_probability_fallback(self, node_id, fault_tree):
         """
         Calculate the probability of a fallback node based on its children
@@ -201,42 +260,103 @@ class BehaviorTree:
             
         self.nodes[node_id].probability = p 
         self.node_probabilities[node_id] = p
-                    
-    def classify_edge(self, source, target, fault_tree):
+        
+    """
+    ==============================================
+    - CONVERSION FROM HARA
+    ==============================================
+    """
+    
+    def generate_from_hara(self, hazard_dict):
         """
-        Classify an edge and add it to the behavior tree
-
+        Generate a behavior tree from the HARA data
+        
         Args:
-            source (str): Source node ID
-            target (str): Target node ID
-            fault_tree (nx.DiGraph): Fault tree
+            hazard_dict (dict): HARA data
         """
-        source_label = fault_tree.nodes[source].get('label', '')
+        # Add item as a root node
+        self.add_node(self.name, 'Root', label=self.name)
+        
+        # Add a fallback node for the root node
+        fallback_root_id = f'fallback_{self.name}'
+        self.add_node(fallback_root_id, 'Fallback', label='Fallback')
+        self.nodes[self.name].children.append(self.nodes[fallback_root_id])
+        
+        for hazard_id, operating_scenario_dict in hazard_dict.items():
+            # Add hazard as a subtree node
+            self.add_node(hazard_id, 'Subtree', label=hazard_id)
+            self.nodes[fallback_root_id].children.append(self.nodes[hazard_id])
             
-        # If the node is an action node, link it to the sequence node
-        if 'action' in source_label.lower():
-            sequence_node_id = f'sequence_{source}'
-            self.add_edge(sequence_node_id, target)
-            self.action = True
-        
-        # If the node is another type of node, link it to its parent
-        else:
-            self.add_edge(source, target)
-        
-    def postprocess_tree(self):
+            # Add Sequence node for each hazard
+            sequence_hz_id = f'sequence_{hazard_id}'
+            self.add_node(sequence_hz_id, 'Sequence', label='Sequence')
+            self.nodes[hazard_id].children.append(self.nodes[sequence_hz_id])
+            
+            # Add FallBack node for each hazard
+            fallback_id = f'fallback_{hazard_id}'
+            self.add_node(fallback_id, 'Fallback', label='Fallback')
+            self.nodes[sequence_hz_id].children.append(self.nodes[fallback_id])
+            
+            for operating_scenario_id, data in operating_scenario_dict.items():
+                # Get the ASIL and Safety State ID from the HARA data
+                asil = data['ASIL']
+                sequence_id = f'sequence_{operating_scenario_id}'
+                safety_state_id = data['Safety_State_ID']
+                
+                # Create a Sequence node for each operating scenario
+                self.add_node(sequence_id, 'Sequence', label='Sequence')
+                self.nodes[sequence_id].asil = asil
+                self.nodes[fallback_id].children.append(self.nodes[sequence_id])
+                
+                # Add operating scenario as a condition node
+                operating_scenario_id = f'condition_{operating_scenario_id}'
+                self.add_node(operating_scenario_id, 'Condition', label=operating_scenario_id)
+                self.nodes[sequence_id].children.append(self.nodes[operating_scenario_id])
+                
+                # Add safety state as an action node
+                safety_state_id = f'action_{safety_state_id}'
+                self.add_node(safety_state_id, 'Action', label=safety_state_id)
+                self.nodes[sequence_id].children.append(self.nodes[safety_state_id])           
+                
+            self.sort_nodes_asil(fallback_id)
+            
+    def attach_hazard_detection(self, bt, hara_dict):
         """
-        Postprocess the tree to rearrange nodes for altering execution order.
-        Specifically, ensure that 'Subtree' nodes come before 'Action' nodes on the same level.
+        Attach hazard detection to the behavior tree nodes
+        
+        Args:
+            bt (BehaviorTree): Behavior tree of the hazard detection
+            hara_dict (dict): HARA data
         """
-        for node_id, node in self.nodes.items():
-            has_subtree = any(child.node_type == 'Subtree' for child in node.children)
-            has_action = any(child.node_type == 'Action' for child in node.children)
-
-            if has_subtree and has_action:
-                subtree_children = [child for child in node.children if child.node_type == 'Subtree']
-                action_children = [child for child in node.children if child.node_type == 'Action']
-                other_children = [child for child in node.children if child.node_type not in ['Subtree', 'Action']]
-                self.nodes[node_id].children = subtree_children + other_children + action_children 
+        for _, node in bt.nodes.items():
+            node_label = node.label.strip('"')
+            
+            # Get the HARA data for the root node
+            if node.node_type == 'Root':
+                node.node_type = 'Subtree'
+                node.node_label = node_label + '_HARA'
+                for key in hara_dict.keys():
+                    if node_label in hara_dict[key].keys():
+                        # TO-DO: Add the detection logic to the behavior tree of the HARA
+                        sequence_hz_id = f'sequence_{node_label}'
+                        for child in node.children:
+                            if child.node_type == 'Fallback' or child.node_type == 'Sequence':
+                                self.nodes[sequence_hz_id].children.insert(0, child)
+                                
+    def sort_nodes_asil(self, node_id):
+        """
+        Sort the nodes based on their ASIL
+        
+        Args:
+            node_id (str): Node ID
+        """
+        self.nodes[node_id].children = sorted(self.nodes[node_id].children, key=lambda x: x.asil, reverse=True)
+                                
+    """
+    ==============================================
+    - RENDERIZE BEHAVIOR TREE
+    ==============================================
+    """
                 
     def create_graphviz_dot(self):
         """
@@ -262,42 +382,12 @@ class BehaviorTree:
         """
         dot = self.create_graphviz_dot()
         dot.render(filename, view=view, cleanup=True, format='pdf')
-        
-    def generate_from_fault_tree(self, fault_tree):
-        """
-        Generate a behavior tree from the fault tree NetworkX graph
-        
-        Args:
-            fault_tree (nx.DiGraph): Fault tree
-        """
-        # Reverse the fault tree to start from the root nodes
-        fault_tree = fault_tree.reverse()
-        
-        # Classify nodes and add them to the behavior tree
-        for node_id in fault_tree.nodes:
-            self.classify_node(node_id, fault_tree)
-        
-        # Add edges based on the digraph structure of the reversed graph
-        for source, target in fault_tree.edges():
-            self.classify_edge(source, target, fault_tree)
-        
-        # Add probabilities to the nodes if the behavior tree is probabilistic
-        if self.probabilistic:
-            self.add_node_probabilities(fault_tree)
-            self.extract_node_levels(fault_tree)
-            self.sort_nodes_probability_level(fault_tree)
-
-        if self.action:
-            self.postprocess_tree()
-        
-    def get_behavior_tree_name(self, node_id):
-        """
-        Get the behavior tree name from the nodes
-        
-        Returns:
-            str: Behavior tree name
-        """
-        return self.nodes[node_id].label.split(' ')[0].strip('"').lower()
+    
+    """
+    ==============================================
+    - BEHAVIOR TREE .XML GROOT FILE
+    ==============================================
+    """
             
     def add_nodes_xml(self, parent_element, node):
         """
@@ -376,14 +466,8 @@ class BehaviorTree:
             folder_name (str): Folder name to save the XML file
             view (bool, optional): Display the tree. Defaults to False.
         """
-        root = ET.Element('root', attrib={'main_tree_to_execute': 'BehaviorTree'})
-        behavior_tree = ET.SubElement(root, 'BehaviorTree', attrib={'ID': 'BehaviorTree'})
-
         # Add root nodes to the behavior tree
-        if self.action:
-            actual_root_nodes = [node_id for node_id, node in self.nodes.items() if node.node_type == 'Sequence' and node_id.startswith('sequence_')]
-        else:
-            actual_root_nodes = [node_id for node_id, node in self.nodes.items() if node.node_type == 'Root']
+        actual_root_nodes = [node_id for node_id, node in self.nodes.items() if node.node_type == 'Root']
         
         # Create folder inside xml_file folder to store the behavior trees
         if not os.path.exists(folder_name):
