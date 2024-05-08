@@ -23,13 +23,16 @@ The tool is designed to convert fault trees from draw.io diagram XML files into 
 2. **Diagram Structure & Symbols**:
     * **Hazards**: Represent hazards using rectangles. This is a required element in your diagram.
     * **Events**: Depict events using circles. These are also required elements.
-    * **Actions**: Actions can be represented by processes. Including actions is optional but helpful to clarify how the hazard should be handled.
     * **AND/OR Gates**: Use the respective symbols for AND/OR gates in your diagram. These are required for depicting logical relationships in the fault tree.
     * **Probabilities**: Use text below the events to indicate the correspondent probability. Example: `p = 0.1`. These elements are not required.
 3. **Exporting the Diagram as XML**:
     * Once your fault tree diagram is ready, you need to export it in XML format. In draw.io, go to `File` > `Export as` > `XML` to save your diagram as an XML file.
 
-**Warning!**: All the fault tree elements (but text probabilities) need to be connected by directional arrows. Ensure that all of them are physically attached to their related elements.
+<p align="center">
+  <img src="ft2bt/test/fault_trees/fta_example.png" alt="Fault Tree Example">
+</p>
+
+**Warning!**: All fault tree elements, with the exception of text probabilities, should be connected by directional arrows. Ensure that each arrow is physically attached to its corresponding elements to maintain clarity and accuracy in the diagram.
 
 ### Preparing Your Hazard Analysis and Risk Assessment (Opitonal)
 
@@ -41,12 +44,8 @@ Create a *.csv file with some required column names:
 4. **ASIL**: Automotive Safety Integrity Level. Options: A, B, C, D
 5. **Safety_State_ID**: Identificator of the Safety State action.
 
-### Input Example: Fault Tree Diagram
-
-Below is an example of a fault tree diagram generated in a Draw.io file:
-
 <p align="center">
-  <img src="ft2bt/test/fault_trees/fta_example.png" alt="Fault Tree Example">
+  <img src="ft2bt/test/hara/hara_example.png" alt="Fault Tree Example">
 </p>
 
 ### Running the Conversion Tool
