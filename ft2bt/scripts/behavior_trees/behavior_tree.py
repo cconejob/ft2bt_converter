@@ -285,36 +285,33 @@ class BehaviorTree:
         self.add_node(fallback_root_id, 'Fallback', label='Fallback')
         self.nodes[self.name].children.append(self.nodes[fallback_root_id])
         
-        for hazard_id, operating_scenario_dict in hazard_dict.items():
-            # Add hazard as a subtree node
-            self.add_node(hazard_id, 'Subtree', label=hazard_id)
-            self.nodes[fallback_root_id].children.append(self.nodes[hazard_id])
-            hz_asil[hazard_id] = list()
+        for operating_scenario_id, hazard_id_dict in hazard_dict.items():
+            # Add sequence node for each operating scenario
+            seq_operating_scenario_id = f'sequence_{operating_scenario_id}'
+            self.add_node(seq_operating_scenario_id, 'Sequence', label=seq_operating_scenario_id)
+            self.nodes[fallback_root_id].children.append(self.nodes[seq_operating_scenario_id])
             
-            # Add Sequence node for each hazard
-            sequence_hz_id = f'sequence_{hazard_id}'
-            self.add_node(sequence_hz_id, 'Sequence', label='Sequence')
-            self.nodes[hazard_id].children.append(self.nodes[sequence_hz_id])
+            # Add operating scenario as a condition node
+            condition_operating_scenario_id = f'condition_{operating_scenario_id}'
+            self.add_node(condition_operating_scenario_id, 'Condition', label=condition_operating_scenario_id)
+            self.nodes[seq_operating_scenario_id].children.append(self.nodes[condition_operating_scenario_id])
             
-            # Check if all safety states are the same independently on the operating scenario.
-            equivalent_safety_states, ss_id, max_asil = self.check_safety_states(operating_scenario_dict)
-            if equivalent_safety_states:
-                self.add_node(ss_id, 'Action', label=ss_id)
-                self.nodes[sequence_hz_id].children.append(self.nodes[ss_id])
-                self.nodes[hazard_id].asil = max_asil
-                continue
+            # Add operating scenario as a subtree node
+            self.add_node(operating_scenario_id, 'Subtree', label=operating_scenario_id)
+            self.nodes[seq_operating_scenario_id].children.append(self.nodes[operating_scenario_id])
+            hz_asil[seq_operating_scenario_id] = list()
             
-            # Add FallBack node for each hazard
-            fallback_id = f'fallback_{hazard_id}'
+            # Add FallBack node for each operating scenario
+            fallback_id = f'fallback_{operating_scenario_id}'
             self.add_node(fallback_id, 'Fallback', label='Fallback')
-            self.nodes[sequence_hz_id].children.append(self.nodes[fallback_id])
+            self.nodes[operating_scenario_id].children.append(self.nodes[fallback_id])
             
-            for operating_scenario_id, data in operating_scenario_dict.items():
+            for hazard_id, data in hazard_id_dict.items():
                 # Get the ASIL and Safety State ID from the HARA data
                 asil = data['ASIL']
-                sequence_id = f'sequence_{operating_scenario_id}'
+                sequence_id = f'sequence_{hazard_id}_{operating_scenario_id}'
                 safety_state_id = data['Safety_State_ID']
-                hz_asil[hazard_id].append(asil)
+                hz_asil[seq_operating_scenario_id].append(asil)
                 
                 # Create a Sequence node for each operating scenario
                 self.add_node(sequence_id, 'Sequence', label='Sequence')
@@ -322,9 +319,9 @@ class BehaviorTree:
                 self.nodes[fallback_id].children.append(self.nodes[sequence_id])
                 
                 # Add operating scenario as a condition node
-                operating_scenario_id = f'condition_{operating_scenario_id}'
-                self.add_node(operating_scenario_id, 'Condition', label=operating_scenario_id)
-                self.nodes[sequence_id].children.append(self.nodes[operating_scenario_id])
+                hazard_id = f'{hazard_id}_{operating_scenario_id}'
+                self.add_node(hazard_id, 'Condition', label=hazard_id)
+                self.nodes[sequence_id].children.append(self.nodes[hazard_id])
                 
                 # Add safety state as an action node
                 safety_state_id = f'action_{safety_state_id}'
@@ -335,7 +332,7 @@ class BehaviorTree:
             self.sort_nodes_asil(fallback_id)
             
             # Get ASIL level of the Hazard
-            self.nodes[hazard_id].asil = sorted(hz_asil[hazard_id])[-1]
+            self.nodes[seq_operating_scenario_id].asil = sorted(hz_asil[seq_operating_scenario_id])[-1]
             
         # Find the HZ ASIL level from the maximum Operating Scenario ASIL
         self.sort_nodes_asil(fallback_root_id)
@@ -355,11 +352,14 @@ class BehaviorTree:
             if node.node_type == 'Root':
                 node.node_type = 'Subtree'
                 node.node_label = node_label + '_HARA'
-                for key in hara_dict.keys():
-                    if node_label in hara_dict[key].keys():
-                        id = f'sequence_{node_label}'
-                        if id in self.nodes.keys():
-                            self.nodes[id].children.insert(0, node.children[0])
+                for item in hara_dict.keys():
+                    for operating_scenario in hara_dict[item].keys():
+                        if node_label in hara_dict[item][operating_scenario].keys():
+                            id = f'sequence_{node_label}_{operating_scenario}'
+                            if id in self.nodes.keys():
+                                self.nodes[id].children.remove(self.nodes[id].children[0])
+                                self.nodes[id].children.insert(0, node)
+                                
                                 
     def sort_nodes_asil(self, node_id):
         """
@@ -438,11 +438,12 @@ class BehaviorTree:
             bt_node = ET.SubElement(parent_element, 'Fallback')
         elif node_type == 'condition':
             self.event_number += 1
-            bt_node = ET.SubElement(parent_element, 'Condition', attrib={'ID': f'Event_{self.event_number}', 'name': node.label.strip('"')})
+            id = node.label.strip('"')
+            bt_node = ET.SubElement(parent_element, 'Condition', attrib={'ID': id, 'name': f'Event_{id}'})
         elif node_type =='action':
             self.action_number += 1
-            name = node.label.strip('"').split(' ')[1:]
-            bt_node = ET.SubElement(parent_element, 'Action', attrib={'ID': f'Action_{self.action_number}', 'name': ' '.join(name)})
+            id = '_'.join(node.label.strip('"').split('_')[1:])
+            bt_node = ET.SubElement(parent_element, 'Action', attrib={'ID': id, 'name': f'Action_{id}'})
         else:
             node_type = 'root' if node.node_type == 'Root' else 'subtree'
             bt_node = ET.SubElement(parent_element, 'SubTree', attrib={'ID': node.label.strip('"')})

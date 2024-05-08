@@ -28,17 +28,17 @@ class HARAParser:
             csv_reader = csv.DictReader(file)
             for row in csv_reader:
                 item_id = row['Item_ID']
-                hazard_id = row['Hazard_ID']
                 operating_scenario_id = row['Operating_Scenario_ID']
+                hazard_id = row['Hazard_ID']
                 asil = row['ASIL']
                 safety_state_id = row['Safety_State_ID']
                 if item_id not in hara_dict:
                     hara_dict[item_id] = dict()
-                if hazard_id not in hara_dict[item_id]:
-                    hara_dict[item_id][hazard_id] = dict()
-                if operating_scenario_id not in hara_dict[item_id][hazard_id]:
-                    hara_dict[item_id][hazard_id][operating_scenario_id] = dict()
-                hara_dict[item_id][hazard_id][operating_scenario_id] = {
+                if operating_scenario_id not in hara_dict[item_id]:
+                    hara_dict[item_id][operating_scenario_id] = dict()
+                if operating_scenario_id not in hara_dict[item_id][operating_scenario_id]:
+                    hara_dict[item_id][operating_scenario_id][hazard_id] = dict()
+                hara_dict[item_id][operating_scenario_id][hazard_id] = {
                     'ASIL': asil,
                     'Safety_State_ID': safety_state_id
                 }

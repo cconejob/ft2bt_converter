@@ -49,7 +49,6 @@ def main():
     # Read the HARA CSV file if it is provided
     if hara_available:
         hara_generator = HARAParser(hara_file=args.HARA_filepath)
-        
         for item_id, hazard_dict in hara_generator.hara_dict.items():
             bt_hara = BehaviorTree(name=item_id, probabilistic=args.probabilistic)
             bt_hara.generate_from_hara(hazard_dict)
