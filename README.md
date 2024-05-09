@@ -29,7 +29,7 @@ The tool is designed to convert fault trees from draw.io diagram XML files into 
     * Once your fault tree diagram is ready, you need to export it in XML format. In draw.io, go to `File` > `Export as` > `XML` to save your diagram as an XML file.
 
 <p align="center">
-  <img src="https://github.com/cconejob/ft2bt_converter/blob/84847e3316d3363eb4e276729f382b198912925f/ft2bt/test/fault_trees/fta_example.png" alt="Fault Tree Example">
+  <img src="https://raw.githubusercontent.com/cconejob/ft2bt_converter/master/ft2bt/test/fault_trees/fta_example.png" alt="Fault Tree Example">
 </p>
 
 **Warning!**: All fault tree elements, with the exception of text probabilities, should be connected by directional arrows. Ensure that each arrow is physically attached to its corresponding elements to maintain clarity and accuracy in the diagram.
@@ -45,7 +45,7 @@ Create a *.csv file with some required column names:
 5. **Safety_State_ID**: Identificator of the Safety State action.
 
 <p align="center">
-  <img src="https://github.com/cconejob/ft2bt_converter/blob/84847e3316d3363eb4e276729f382b198912925f/ft2bt/test/hara/hara_example.png" alt="HARA Example">
+  <img src="https://raw.githubusercontent.com/cconejob/ft2bt_converter/master/ft2bt/test/hara/hara_example.png" alt="HARA Example">
 </p>
 
 ### Running the Conversion Tool
@@ -74,7 +74,7 @@ Below is an example of the behavior tree diagrams generated from the fault tree.
 The order of the events is randomly selected in this version of the software. Future versions will sort the events by probability of occurrence.
 
 <p align="center">
-  <img src="https://github.com/cconejob/ft2bt_converter/blob/84847e3316d3363eb4e276729f382b198912925f/ft2bt/test/behavior_trees/render/BT_hz_01.svg" alt="Behavior Tree Conversion Example" height="400"> <!-- or you can set the height instead -->
+  <img src="https://raw.githubusercontent.com/cconejob/ft2bt_converter/master/ft2bt/test/behavior_trees/render/BT_hz_01.svg" alt="Behavior Tree Conversion Example" height="400"> <!-- or you can set the height instead -->
 </p>
 
 ## Contact Information and Acknowledgement
