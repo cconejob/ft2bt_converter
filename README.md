@@ -45,7 +45,7 @@ Create a *.csv file with some required column names:
 5. **Safety_State_ID**: Identificator of the Safety State action.
 
 <p align="center">
-  <img src="ft2bt/test/hara/hara_example.png" alt="Fault Tree Example">
+  <img src="ft2bt/test/hara/hara_example.png" alt="HARA Example">
 </p>
 
 ### Running the Conversion Tool
