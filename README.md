@@ -6,7 +6,7 @@ This project focuses on the conversion of fault trees, represented in draw.io di
 
 ## Installation
 
-Install with PyPI:
+Install with [PyPI](https://pypi.org/project/ft2bt/):
 
 ```bash
 pip install ft2bt
