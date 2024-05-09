@@ -18,6 +18,7 @@ def main():
     parser.add_argument('-o', '--output_folder', type=str, help="Output folder for the behavior trees.")
     parser.add_argument('-p', '--probabilistic', action='store_true', help="Generate probabilistic behavior trees.")
     parser.add_argument('-H', '--HARA_filepath', type=str, help="*.csv HARA file global path.", default=None, required=False)
+    parser.add_argument('-os', '--operating_scenario', action='store_true', help="Generate operating scenario behavior trees.")
     args = parser.parse_args()
     
     # Get the path to the package
@@ -50,7 +51,7 @@ def main():
     if hara_available:
         hara_generator = HARAParser(hara_file=args.HARA_filepath)
         for item_id, hazard_dict in hara_generator.hara_dict.items():
-            bt_hara = BehaviorTree(name=item_id, probabilistic=args.probabilistic)
+            bt_hara = BehaviorTree(name=item_id, probabilistic=args.probabilistic, operating_scenario=args.operating_scenario)
             bt_hara.generate_from_hara(hazard_dict)
     
     for fta in fta_list:

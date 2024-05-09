@@ -22,12 +22,13 @@ class BehaviorTree:
         name (str, optional): Name of the behavior tree. Defaults to str().
         probabilistic (bool, optional): Whether the behavior tree is probabilistic. Defaults to False.
     """
-    def __init__(self, name=str(), probabilistic=False):
+    def __init__(self, name=str(), probabilistic=False, operating_scenario=False):
         self.nodes = dict()
         self.name = name
         self.event_number = int()
         self.action_number = int()
         self.probabilistic = probabilistic
+        self.operating_scenario = operating_scenario
         
         # Probabilistic behavior tree attributes
         if probabilistic:
@@ -286,39 +287,60 @@ class BehaviorTree:
         self.nodes[self.name].children.append(self.nodes[fallback_root_id])
         
         for operating_scenario_id, hazard_id_dict in hazard_dict.items():
-            # Add sequence node for each operating scenario
-            seq_operating_scenario_id = f'sequence_{operating_scenario_id}'
-            self.add_node(seq_operating_scenario_id, 'Sequence', label=seq_operating_scenario_id)
-            self.nodes[fallback_root_id].children.append(self.nodes[seq_operating_scenario_id])
-            
-            # Add operating scenario as a condition node
-            condition_operating_scenario_id = f'condition_{operating_scenario_id}'
-            self.add_node(condition_operating_scenario_id, 'Condition', label=condition_operating_scenario_id)
-            self.nodes[seq_operating_scenario_id].children.append(self.nodes[condition_operating_scenario_id])
-            
-            # Add operating scenario as a subtree node
-            self.add_node(operating_scenario_id, 'Subtree', label=operating_scenario_id)
-            self.nodes[seq_operating_scenario_id].children.append(self.nodes[operating_scenario_id])
-            hz_asil[seq_operating_scenario_id] = list()
-            
-            # Add FallBack node for each operating scenario
-            fallback_id = f'fallback_{operating_scenario_id}'
-            self.add_node(fallback_id, 'Fallback', label='Fallback')
-            self.nodes[operating_scenario_id].children.append(self.nodes[fallback_id])
+            if self.operating_scenario:
+                # Add sequence node for each operating scenario
+                seq_operating_scenario_id = f'sequence_{operating_scenario_id}'
+                self.add_node(seq_operating_scenario_id, 'Sequence', label=seq_operating_scenario_id)
+                self.nodes[fallback_root_id].children.append(self.nodes[seq_operating_scenario_id])
+                
+                # Add operating scenario as a condition node
+                condition_operating_scenario_id = f'condition_{operating_scenario_id}'
+                self.add_node(condition_operating_scenario_id, 'Condition', label=condition_operating_scenario_id)
+                self.nodes[seq_operating_scenario_id].children.append(self.nodes[condition_operating_scenario_id])
+                
+                # Add operating scenario as a subtree node
+                self.add_node(operating_scenario_id, 'Subtree', label=operating_scenario_id)
+                self.nodes[seq_operating_scenario_id].children.append(self.nodes[operating_scenario_id])
+                hz_asil[seq_operating_scenario_id] = list()
+                
+                # Add FallBack node for each operating scenario
+                fallback_id = f'fallback_{operating_scenario_id}'
+                self.add_node(fallback_id, 'Fallback', label='Fallback')
+                self.nodes[operating_scenario_id].children.append(self.nodes[fallback_id])
             
             for hazard_id, data in hazard_id_dict.items():
+                if not self.operating_scenario:
+                    seq_operating_scenario_id = f'sequence_{hazard_id}'
+                    fallback_id = fallback_root_id
+                    hz_asil[seq_operating_scenario_id] = list()
+                
                 # Get the ASIL and Safety State ID from the HARA data
                 asil = data['ASIL']
-                sequence_id = f'sequence_{hazard_id}_{operating_scenario_id}'
+                sequence_id = f'sequence_{hazard_id}_{operating_scenario_id}' if self.operating_scenario else f'sequence_{hazard_id}'
                 safety_state_id = data['Safety_State_ID']
                 hz_asil[seq_operating_scenario_id].append(asil)
                 
-                # Create a Sequence node for each operating scenario
-                self.add_node(sequence_id, 'Sequence', label='Sequence')
-                self.nodes[sequence_id].asil = asil
-                self.nodes[fallback_id].children.append(self.nodes[sequence_id])
+                if self.operating_scenario or sequence_id not in self.nodes.keys():
+                    # Create a Sequence node for each operating scenario and hazard
+                    self.add_node(sequence_id, 'Sequence', label='Sequence')
+                    self.nodes[sequence_id].asil = asil
+                    self.nodes[fallback_id].children.append(self.nodes[sequence_id])
+                    
+                elif asil > self.nodes[sequence_id].asil:
+                    # Update the ASIL level of the sequence node
+                    self.nodes[sequence_id].asil = asil
+                    
+                    # Remove the safety state node from the sequence node and add the new one
+                    self.nodes[sequence_id].children.remove(self.nodes[sequence_id].children[-1])
+                    safety_state_id = f'action_{safety_state_id}'
+                    self.add_node(safety_state_id, 'Action', label=safety_state_id)
+                    self.nodes[sequence_id].children.append(self.nodes[safety_state_id])
+                    continue
                 
-                # Add operating scenario as a condition node
+                else:
+                    continue
+                
+                # Add hazard and operating scenario as a condition node
                 hazard_id = f'{hazard_id}_{operating_scenario_id}'
                 self.add_node(hazard_id, 'Condition', label=hazard_id)
                 self.nodes[sequence_id].children.append(self.nodes[hazard_id])
@@ -355,11 +377,10 @@ class BehaviorTree:
                 for item in hara_dict.keys():
                     for operating_scenario in hara_dict[item].keys():
                         if node_label in hara_dict[item][operating_scenario].keys():
-                            id = f'sequence_{node_label}_{operating_scenario}'
+                            id = f'sequence_{node_label}_{operating_scenario}' if self.operating_scenario else f'sequence_{node_label}'
                             if id in self.nodes.keys():
                                 self.nodes[id].children.remove(self.nodes[id].children[0])
-                                self.nodes[id].children.insert(0, node)
-                                
+                                self.nodes[id].children.insert(0, node)                                
                                 
     def sort_nodes_asil(self, node_id):
         """

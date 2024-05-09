@@ -53,7 +53,7 @@ Create a *.csv file with some required column names:
 Run the conversion command:
 
 ```bash
-ft2bt [-h] -f FTA_FILEPATH [-v] [-c] [-r] [-o OUTPUT_FOLDER] [-p] [-H HARA_FILEPATH]
+ft2bt [-h] -f FTA_FILEPATH [-v] [-c] [-r] [-o OUTPUT_FOLDER] [-p] [-H HARA_FILEPATH] [-os]
 ```
 
 Where:
@@ -65,6 +65,7 @@ Where:
 * **-o**: (Optional) Specifies the global folder path, where the behavior tree XML diagram is saved.
 * **-p**: (Optional) Probabilities are considered to sort the behavior tree nodes.
 * **-H**: (Optional) Specifies the CSV global file name of the Hazard Analysis and Risk Assessment (HARA).
+* **-os**: (Optional) Generate a BT that includes events to check the Operating Scenario.
 
 ### Output Example: Behavior Tree Diagram
 
