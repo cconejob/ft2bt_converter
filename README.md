@@ -34,7 +34,7 @@ The tool is designed to convert fault trees from draw.io diagram XML files into 
 
 **Warning!**: All fault tree elements, with the exception of text probabilities, should be connected by directional arrows. Ensure that each arrow is physically attached to its corresponding elements to maintain clarity and accuracy in the diagram.
 
-### Preparing Your Hazard Analysis and Risk Assessment (Opitonal)
+### Preparing Your Hazard Analysis and Risk Assessment (Optional)
 
 Create a *.csv file with some required column names:
 
