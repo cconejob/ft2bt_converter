@@ -53,19 +53,20 @@ Create a *.csv file with some required column names:
 Run the conversion command:
 
 ```bash
-ft2bt [-h] -f FTA_FILEPATH [-v] [-c] [-r] [-o OUTPUT_FOLDER] [-p] [-H HARA_FILEPATH] [-os]
+ft2bt [-h] -f FTA_FILEPATH [-v] [-c] [-r] [-o OUTPUT_FOLDER] [-p] [-H HARA_FILEPATH] [-os] [-ctl]
 ```
 
 Where:
 
-* **-f**: (Required) Specifies the XML global filepath name of the draw.io diagram.
-* **-v**: (Optional) Automatically shows and saves the renders. Defaults to false.
-* **-c**: (Optional) Generate a cpp ROS node template for the behavior tree. Defaults to false.
-* **-r**: (Optional) Replaces current code if previously generated and -c is set to True.
-* **-o**: (Optional) Specifies the global folder path, where the behavior tree XML diagram is saved.
-* **-p**: (Optional) Probabilities are considered to sort the behavior tree nodes.
-* **-H**: (Optional) Specifies the CSV global file name of the Hazard Analysis and Risk Assessment (HARA).
-* **-os**: (Optional) Generate a BT that includes events to check the Operating Scenario.
+* **-f**: (Required, str) Specifies the XML global filepath name of the draw.io diagram.
+* **-v**: (Optional, bool) Automatically shows and saves the renders. Defaults to False.
+* **-c**: (Optional, bool) Generate a cpp ROS node template for the behavior tree. Defaults to False.
+* **-r**: (Optional, bool) Replaces current code if previously generated and -c is set to True.
+* **-o**: (Optional, str) Specifies the global folder path, where the behavior tree XML diagram is saved.
+* **-p**: (Optional, bool) Probabilities are considered to sort the behavior tree nodes. Defaults to False.
+* **-H**: (Optional, str) Specifies the CSV global file name of the Hazard Analysis and Risk Assessment (HARA).
+* **-os**: (Optional, bool) Generate a BT that includes events to check the Operating Scenario.
+* **-ctl**: (Optional, bool) Generate a SMV file to get the functional safety CTL specifications.
 
 ### Output Example: Behavior Tree Diagram
 
