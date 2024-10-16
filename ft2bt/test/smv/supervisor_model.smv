@@ -1,0 +1,228 @@
+-------------------------------------------------------------------------------------------------------------------------
+-- CONDITION NODE
+-------------------------------------------------------------------------------------------------------------------------
+
+-- The output is `true` if the condition is true, `false` otherwise.
+
+MODULE bt_condition(enable_condition, condition)
+  VAR
+    enable : boolean;
+    output : { None, Success, Failure };
+  ASSIGN
+    init(enable) := FALSE;
+    init(output) := None;
+    next(enable) := enable_condition;
+    next(output) :=
+      case
+        condition & enable_condition: Success;
+        TRUE : Failure;
+      esac;
+-------------------------------------------------------------------------------------------------------------------------
+
+
+-------------------------------------------------------------------------------------------------------------------------
+-- ACTION NODE
+-------------------------------------------------------------------------------------------------------------------------
+
+-- The output is `running` while the action is being executed, `true` if the action is successful, `false` otherwise.
+
+MODULE bt_action(enable_condition)
+  VAR
+    enable : boolean;
+    goal_reached : boolean;
+    output : { None, Running, Failure, Success };
+    i : { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
+  ASSIGN
+    init(enable) := FALSE;
+    init(output) := None;
+    init(goal_reached) := FALSE;
+    init(i) := 0;
+    next(enable) := enable_condition | enable;
+    next(output) :=
+      case
+        goal_reached : Success;
+        enable_condition | enable: Running;
+        TRUE : Failure;
+      esac;
+    next(i) :=
+      case
+        output = Running & i<10: i + 1;
+        i = 10 : 10;
+        TRUE : 0;
+      esac;
+    next(goal_reached) :=
+      case
+        goal_reached : goal_reached;
+        i < 10: FALSE;
+        i >= 10 : TRUE;
+        TRUE : goal_reached;
+      esac;
+-------------------------------------------------------------------------------------------------------------------------
+
+
+-------------------------------------------------------------------------------------------------------------------------
+-- FALLBACK NODE
+-------------------------------------------------------------------------------------------------------------------------
+
+-- The output is `running` if the left child is `running`, `true` if the left child is `true`, right child otherwise.
+
+MODULE bt_fallback(left_bt, right_bt)
+  DEFINE 
+  output := case
+      left_bt.output in { Running, Success } : left_bt.output;
+      TRUE : right_bt.output;
+    esac;
+-------------------------------------------------------------------------------------------------------------------------
+
+
+-------------------------------------------------------------------------------------------------------------------------
+-- SEQUENCE NODE
+-------------------------------------------------------------------------------------------------------------------------
+
+-- The output is `running` if the left child is `running`, `false` if the left child is `false`, right child otherwise.
+
+MODULE bt_sequence(left_bt, right_bt)
+  DEFINE
+    output :=
+      case
+        left_bt.output in { Running, Failure } : left_bt.output;
+        TRUE : right_bt.output;
+      esac;
+-------------------------------------------------------------------------------------------------------------------------
+
+
+-------------------------------------------------------------------------------------------------------------------------
+-- NEGATION NODE
+-------------------------------------------------------------------------------------------------------------------------
+
+-- The output is `true` if the child output is `false`, `false` otherwise.
+
+MODULE bt_not(child_bt)
+  DEFINE
+    output :=
+      case
+        child_bt.output = Failure : Success;
+        child_bt.output = Success : Failure;
+        TRUE : child_bt.output;
+      esac;
+-------------------------------------------------------------------------------------------------------------------------
+
+
+-------------------------------------------------------------------------------------------------------------------------
+-- PLACEHOLDER NODE
+-------------------------------------------------------------------------------------------------------------------------
+
+-- The output is `success` if the condition is true, `failure` otherwise.
+
+MODULE bt_placeholder(condition)
+  DEFINE
+    output := 
+      case
+        condition : Success;
+        TRUE : Failure;
+      esac;
+-------------------------------------------------------------------------------------------------------------------------
+
+
+-------------------------------------------------------------------------------------------------------------------------
+-- BEHAVIOR TREE MODEL DEFINITION (AUTOMATIC GENERATION FROM BEHAVIOR TREE)
+-------------------------------------------------------------------------------------------------------------------------
+
+-- Hazard Subtrees (HZ_01 --> e1; HZ_02 --> e2)
+
+MODULE HZ_01(condition, e10, e11, e12A, e12B)
+  VAR
+    E11 : bt_condition(TRUE, condition & e11);
+    E12A : bt_condition(TRUE, condition & e12A);
+    E12B : bt_condition(TRUE, condition & e12B);
+    E10: bt_condition(TRUE, condition & e10);
+    subtree_seq : bt_sequence(E12A, E12B);
+    subtree_fallback_1 : bt_fallback(E11, subtree_seq);
+    subtree : bt_fallback(subtree_fallback_1, E10);
+  DEFINE
+    output := subtree.output;
+
+MODULE HZ_02(condition, e13, e14, e15)
+  VAR
+    E15 : bt_condition(TRUE, condition & e15);
+    E14 : bt_condition(TRUE, condition & e14);
+    E13 : bt_condition(TRUE, condition & e13);
+    subtree_fallback_1 : bt_fallback(E15, E14);
+    subtree : bt_fallback(subtree_fallback_1, E13);
+  DEFINE
+    output := subtree.output;
+
+
+-- Operating Situation Subtrees (OS1; OS2)
+
+MODULE OS1(condition, e10, e11, e12A, e12B, e13, e14, e15)
+  VAR
+    HZ_01 : HZ_01(condition, e10, e11, e12A, e12B);
+    SS_01 : bt_action(HZ_01.output = Success);
+    HZ_02 : HZ_02(condition, e13, e14, e15);
+    SS_02 : bt_action(HZ_02.output = Success);
+    seq_HZ_01 : bt_sequence(HZ_01, SS_01);
+    seq_HZ_02 : bt_sequence(HZ_02, SS_02);
+    subtree : bt_fallback(seq_HZ_01, seq_HZ_02);
+  DEFINE
+    output := subtree.output; 
+
+MODULE OS2(condition, e10, e11, e12A, e12B, e13, e14, e15)
+  VAR
+    HZ_02 : HZ_02(condition, e13, e14, e15);
+    SS_03 : bt_action(HZ_02.output = Success);
+    seq_HZ_02 : bt_sequence(HZ_02, SS_03);
+    HZ_01 : HZ_01(condition, e10, e11, e12A, e12B);
+    SS_01 : bt_action(HZ_01.output = Success);
+    seq_HZ_01 : bt_sequence(HZ_01, SS_01);
+    subtree : bt_fallback(seq_HZ_02, seq_HZ_01);
+  DEFINE
+    output := subtree.output; 
+
+MODULE OS3(condition, e10, e11, e12A, e12B, e13, e14, e15)
+  VAR
+    HZ_02 : HZ_02(condition, e13, e14, e15);
+    SS_04 : bt_action(HZ_02.output = Success);
+    seq_HZ_02 : bt_sequence(HZ_02, SS_04);
+    HZ_01 : HZ_01(condition, e10, e11, e12A, e12B);
+    SS_01 : bt_action(HZ_01.output = Success);
+    seq_HZ_01 : bt_sequence(HZ_01, SS_01);
+    subtree : bt_fallback(seq_HZ_02, seq_HZ_01);
+  DEFINE
+    output := subtree.output; 
+
+
+-- Item or Root tree (I_01)
+
+MODULE I_01(os, e10, e11, e12A, e12B, e13, e14, e15)
+  VAR
+    condition_OS3 : bt_condition(TRUE, os = os3);
+    OS3 : OS3(condition_OS3.output = Success, e10, e11, e12A, e12B, e13, e14, e15);
+    condition_OS2 : bt_condition(TRUE, os = os2);
+    OS2 : OS2(condition_OS2.output = Success, e10, e11, e12A, e12B, e13, e14, e15);
+    condition_OS1 : bt_condition(OS2.output = Failure, os = os1);
+    OS1 : OS1(condition_OS1.output = Success, e10, e11, e12A, e12B, e13, e14, e15);
+    seq_OS3 : bt_sequence(condition_OS3, OS3.subtree);
+    seq_OS2 : bt_sequence(condition_OS2, OS2.subtree);
+    seq_OS1 : bt_sequence(condition_OS1, OS1.subtree);
+    subtree_seq_1 : bt_fallback(seq_OS3, seq_OS2);
+    subtree : bt_fallback(subtree_seq_1, seq_OS1);
+  DEFINE
+    output := subtree.output;
+
+
+-- Define the root tree. The frozen variables are the leaves of the tree.
+
+MODULE main
+  FROZENVAR
+    os : {os1, os2, os3};
+    e10: boolean;
+    e11: boolean;
+    e12A: boolean;
+    e12B: boolean;
+    e13: boolean;
+    e14: boolean;
+    e15: boolean;
+  VAR
+    I_01 : I_01(os, e10, e11, e12A, e12B, e13, e14, e15);
+-------------------------------------------------------------------------------------------------------------------------
