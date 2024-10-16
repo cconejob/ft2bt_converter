@@ -135,6 +135,7 @@ cython_debug/
 .vscode/
 
 # Other
+/behavior_trees
 /ft2bt/*.pdf
 /behavior_trees/*.xml
 /behavior_trees/*.json
