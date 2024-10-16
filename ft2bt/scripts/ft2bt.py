@@ -5,6 +5,7 @@ from ft2bt.scripts.fault_trees.xml_fta_parser import XMLFTAParser
 from ft2bt.scripts.behavior_trees.behavior_tree import BehaviorTree
 from ft2bt.scripts.code_generator.code_generator import CodeGenerator
 from ft2bt.scripts.hara.hara_parser import HARAParser
+from ft2bt.scripts.formal_verification.ctl_specification_generator import CTLSpecificationGenerator
 
 
 def main():  
@@ -13,12 +14,13 @@ def main():
     # Limit coordinates
     parser.add_argument('-f', '--fta_filepath', type=str, help="*.xml fault tree global path", required=True)
     parser.add_argument('-v', '--view', action='store_true', help="View the behavior tree renders?")
-    parser.add_argument('-c', '--generate_cpp', action='store_true', help="Generate C++ code template?")
+    parser.add_argument('-code', '--generate_cpp', action='store_true', help="Generate C++ code template?")
     parser.add_argument('-r', '--replace', action='store_true', help="Replace existing files?")
     parser.add_argument('-o', '--output_folder', type=str, help="Output folder for the behavior trees.")
     parser.add_argument('-p', '--probabilistic', action='store_true', help="Generate probabilistic behavior trees.")
     parser.add_argument('-H', '--HARA_filepath', type=str, help="*.csv HARA file global path.", default=None, required=False)
     parser.add_argument('-os', '--operating_scenario', action='store_true', help="Generate operating scenario behavior trees.")
+    parser.add_argument('-ctl', '--ctl_specifications', action='store_true', help="Generate FuSa CTL specifications.")
     args = parser.parse_args()
     
     # Get the path to the package
@@ -79,6 +81,18 @@ def main():
         bt_hara.generate_xml_file(folder_name=behavior_tree_folder, view=args.view)
         if args.generate_cpp:
             code_generator.generate_main_cpp_file(xml_file_path=bt_hara.xml_file_path, bt_name=bt_hara.name)
+    
+    # Generate the CTL specifications if the flag is set
+    if args.ctl_specifications:
+        if not hara_available:
+            print("HARA file not provided. Cannot generate CTL specifications.")
+        else:
+            ctl_spec_generator = CTLSpecificationGenerator(hara_file_path=args.HARA_filepath)
+            specs = ctl_spec_generator.generate_ctl_specifications()
+            
+            # Write the CTL specifications to a file in the output folder
+            ctl_output_file = behavior_tree_folder / 'ctl_specifications.smv'
+            ctl_spec_generator.write_ctl_specifications(ctl_output_file, specs)
         
 
 if __name__ == "__main__":    
