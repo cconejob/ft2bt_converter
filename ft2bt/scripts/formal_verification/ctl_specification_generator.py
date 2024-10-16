@@ -22,9 +22,9 @@ class CTLSpecificationGenerator:
         ctl_output += "-------------------------------------------------------------------------------------------------------------------------\n\n"
         
         # Apply conversion to remove subscripts in all relevant columns
-        self.hara_df['Operating_Scenario_ID'] = self.hara_df['Operating_Scenario_ID'].apply(convert_subscripts)
-        self.hara_df['Hazard_ID'] = self.hara_df['Hazard_ID'].apply(convert_subscripts)
-        self.hara_df['Safety_State_ID'] = self.hara_df['Safety_State_ID'].apply(convert_subscripts)
+        self.hara_df['Operating_Scenario_ID'] = self.hara_df['Operating_Scenario_ID'].apply(self.convert_subscripts)
+        self.hara_df['Hazard_ID'] = self.hara_df['Hazard_ID'].apply(self.convert_subscripts)
+        self.hara_df['Safety_State_ID'] = self.hara_df['Safety_State_ID'].apply(self.convert_subscripts)
         
         # Group by 'Item_ID' and 'Operating_Scenario_ID'
         items = self.hara_df['Item_ID'].unique()
