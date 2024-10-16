@@ -1,0 +1,7 @@
+Item_ID,Hazard_ID,Operating_Scenario_ID,ASIL,Safety_Goal_ID,Safety_State_ID
+I_01,HZ_01,OS₁,C,SG_01,SS_01
+I_01,HZ_01,OS₂,C,SG_01,SS_01
+I_01,HZ_01,OS₃,C,SG_01,SS_01
+I_01,HZ_02,OS₁,B,SG_02,SS_02
+I_01,HZ_02,OS₂,C,SG_02,SS_03
+I_01,HZ_02,OS₃,D,SG_02,SS_04
