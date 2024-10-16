@@ -65,10 +65,12 @@ def main():
         if args.probabilistic:
             bt.node_probabilities = fta_parser.node_probabilities
         bt.generate_from_fault_tree(fta)
-        bt.generate_xml_file(folder_name=behavior_tree_folder, view=args.view)
+        
+        if not hara_available:
+            bt.generate_xml_file(folder_name=behavior_tree_folder, view=args.view)
         
         # Attach the singular hazard detection nodes to the HARA behavior tree
-        if hara_available:
+        else:
             bt_hara.attach_hazard_detection(bt, hara_generator.hara_dict)
 
         # Generate the C++ code template for the behavior tree if the flag is set
@@ -91,7 +93,7 @@ def main():
             specs = ctl_spec_generator.generate_ctl_specifications()
             
             # Write the CTL specifications to a file in the output folder
-            ctl_output_file = behavior_tree_folder / 'ctl_specifications.smv'
+            ctl_output_file = package_path / 'behavior_trees' / 'ctl_specifications.smv'
             ctl_spec_generator.write_ctl_specifications(ctl_output_file, specs)
         
 
