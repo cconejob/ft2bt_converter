@@ -103,9 +103,9 @@ Below is an example of the behavior tree diagrams generated from the fault tree 
 ft2bt -os -p -ctl -f $FT2BT_PATH/test/fault_trees/fta_example.xml -H $FT2BT_PATH/test/hara/hara_example.csv -o $FT2BT_PATH/test/behavior_trees
 ```
 
-The XML file is loaded using [Groot](https://github.com/BehaviorTree/Groot):
+The order of the events is sorted by probability of occurrence (**-p** option). The operational situations (OS) are added from the HARA information (**-os** option).Finally, CTL automotive functional safety formal verification is performed to ensure that the FuSa Supervisor is meeting the ISO 26262 requirements (**-ctl** option).
 
-The order of the events is sorted by probability of occurrence (**-p** oprion).
+The output XML file that represents the supervisor can be loaded using [Groot](https://github.com/BehaviorTree/Groot):
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/cconejob/ft2bt_converter/master/ft2bt/test/behavior_trees/render/BT_hz_01.svg" alt="Behavior Tree Conversion Example"> <!-- or you can set the height instead -->
