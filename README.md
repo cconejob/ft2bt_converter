@@ -2,7 +2,9 @@
 
 ## Overview
 
-This project focuses on the conversion of fault trees, represented in draw.io diagram XML files, into behavior tree XML files compatible with the BehaviorTree.CPP library. It enables users to transform their fault tree diagrams into actionable behavior trees, facilitating integration with systems that utilize the BehaviorTree.CPP framework for managing complex behaviors.
+This repository focuses on the conversion of fault trees, represented in draw.io diagram XML files, into behavior tree XML files compatible with the BehaviorTree.CPP library. It enables users to transform their fault tree diagrams into actionable behavior trees, facilitating integration with systems that utilize the BehaviorTree.CPP framework for managing complex behaviors.
+
+The project is specifically designed for **Functional Safety (FuSa)** runtime assessment for **autonomous vehicles**, adhering to the **ISO 26262** standard for road vehicles. It allows for the automatic generation of **FuSa Supervisors** from static safety analysis, ensuring compliance with these safety requirements. These supervisors can be formally verified using the **NuSMV 2.6.0** tool.
 
 ## Installation
 
@@ -10,7 +12,31 @@ Install with [PyPI](https://pypi.org/project/ft2bt/):
 
 ```bash
 pip install ft2bt
+echo 'export FT2BT_PATH=$(python3 -c "import ft2bt; import os; print(os.path.dirname(ft2bt.__file__))")' >> ~/.bashrc
+source ~/.bashrc
 ```
+
+### Requirements
+
+This project requires **NuSMV version 2.6.0** to be installed, only in the case that the formal verification is required. Follow the steps below to install it:
+
+- Go to the [NuSMV Downloads Page](https://nusmv.fbk.eu/downloads.html).
+- Download the **NuSMV 2.6.0** archive file for your operating system.
+
+After downloading, extract the contents of the archive file:
+
+```bash
+tar -xvzf NuSMV-2.6.0.tar.gz
+cd NuSMV-2.6.0
+./configure
+make
+sudo make install
+NuSMV -version
+```
+
+You can refer to the [NuSMV Documentation](https://nusmv.fbk.eu/userman/v26/nusmv.pdf) for more details.
+
+The repository has been proven in an Ubuntu 20.04 environment.
 
 ## Usage
 
@@ -41,7 +67,8 @@ Create a *.csv file with some required column names:
 1. **Item_ID**: Identificator of the Item analyzed.
 2. **Hazard_ID**:  Identificator of the possible Hazard. The ID must match with the name of the correspondent Hazard in the Fault Tree.
 3. **Operating_Scenario_ID**: Identificator of the Operating Scenario.
-4. **ASIL**: Automotive Safety Integrity Level. Options: A, B, C, D
+4. **ASIL**: Automotive Safety Integrity Level. Options: A, B, C, D.
+5. **Safety_Goal_ID**: Identificator of the Safety Goal.
 5. **Safety_State_ID**: Identificator of the Safety State action.
 
 <p align="center">
@@ -53,7 +80,7 @@ Create a *.csv file with some required column names:
 Run the conversion command:
 
 ```bash
-ft2bt [-h] -f FTA_FILEPATH [-v] [-c] [-r] [-o OUTPUT_FOLDER] [-p] [-H HARA_FILEPATH] [-os] [-ctl]
+ft2bt -f FTA_FILEPATH [-v] [-c] [-r] [-o OUTPUT_FOLDER] [-p] [-H HARA_FILEPATH] [-os] [-ctl]
 ```
 
 Where:
@@ -65,14 +92,20 @@ Where:
 * **-o**: (Optional, str) Specifies the global folder path, where the behavior tree XML diagram is saved.
 * **-p**: (Optional, bool) Probabilities are considered to sort the behavior tree nodes. Defaults to False.
 * **-H**: (Optional, str) Specifies the CSV global file name of the Hazard Analysis and Risk Assessment (HARA).
-* **-os**: (Optional, bool) Generate a BT that includes events to check the Operating Scenario.
-* **-ctl**: (Optional, bool) Generate a SMV file to get the functional safety CTL specifications.
+* **-os**: (Optional, bool) Generate a FuSa BT that includes events to check the Operating Scenario. Defaults to False
+* **-ctl**: (Optional, bool) Formally verify the BT FuSa supervisor with CTL formulation. Defaults to False
 
 ### Output Example: Behavior Tree Diagram
 
-Below is an example of the behavior tree diagrams generated from the fault tree. The XML file is loaded using [Groot](https://github.com/BehaviorTree/Groot):
+Below is an example of the behavior tree diagrams generated from the fault tree and HARA examples. The command used for the generation is:
 
-The order of the events is randomly selected in this version of the software. Future versions will sort the events by probability of occurrence.
+```bash
+ft2bt -os -p -ctl -f $FT2BT_PATH/test/fault_trees/fta_example.xml -H $FT2BT_PATH/test/hara/hara_example.csv -o $FT2BT_PATH/test/behavior_trees
+```
+
+The XML file is loaded using [Groot](https://github.com/BehaviorTree/Groot):
+
+The order of the events is sorted by probability of occurrence (**-p** oprion).
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/cconejob/ft2bt_converter/master/ft2bt/test/behavior_trees/render/BT_hz_01.svg" alt="Behavior Tree Conversion Example" height="400"> <!-- or you can set the height instead -->
