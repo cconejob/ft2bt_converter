@@ -6,7 +6,7 @@ from ft2bt.scripts.behavior_trees.behavior_tree import BehaviorTree
 from ft2bt.scripts.code_generator.code_generator import CodeGenerator
 from ft2bt.scripts.hara.hara_parser import HARAParser
 from ft2bt.scripts.formal_verification.ctl_specification_generator import CTLSpecificationGenerator
-
+from ft2bt.scripts.formal_verification.supervisor_model_generator import SupervisorModelGenerator
 
 def main():  
     parser = argparse.ArgumentParser(description='Convert xml file from drawio to behavior tree xml file for Groot.')
@@ -84,18 +84,20 @@ def main():
         if args.generate_cpp:
             code_generator.generate_main_cpp_file(xml_file_path=bt_hara.xml_file_path, bt_name=bt_hara.name)
     
-    # Generate the CTL specifications if the flag is set
+    # Fowmally verify with CTL specifications if the flag is set
     if args.ctl_specifications:
         if not hara_available:
             print("HARA file not provided. Cannot generate CTL specifications.")
         else:
+            supervisor_model_generator = SupervisorModelGenerator(bt_xml_file_path=bt_hara.xml_file_path)
+            supervisor_model_generator.forward()
+            
             ctl_spec_generator = CTLSpecificationGenerator(hara_file_path=args.HARA_filepath)
             specs = ctl_spec_generator.generate_ctl_specifications()
-            
-            # Write the CTL specifications to a file in the output folder
-            ctl_output_file = package_path / 'behavior_trees' / 'ctl_specifications.smv'
-            ctl_spec_generator.write_ctl_specifications(ctl_output_file, specs)
-        
+            ctl_spec_generator.write_ctl_specifications(supervisor_model_generator.bt_model_smv_path, specs)
+
+            # Run NuSMV on the supervisor model
+            supervisor_model_generator.run_nusmv()
 
 if __name__ == "__main__":    
     main()
