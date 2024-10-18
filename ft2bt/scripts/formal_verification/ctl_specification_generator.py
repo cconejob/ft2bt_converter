@@ -1,5 +1,4 @@
 import pandas as pd
-import re
 
 
 class CTLSpecificationGenerator:
@@ -12,12 +11,7 @@ class CTLSpecificationGenerator:
         return text.translate(subscripts)
 
     def generate_ctl_specifications(self):
-        # Initialize output string
         ctl_output = "-------------------------------------------------------------------------------------------------------------------------\n"
-        ctl_output += "-- INSERT YOUR SUPERVISOR MODEL HERE\n"
-        ctl_output += "-------------------------------------------------------------------------------------------------------------------------\n\n\n\n"
-        
-        ctl_output += "-------------------------------------------------------------------------------------------------------------------------\n"
         ctl_output += "-- CTL PROPERTIES\n"
         ctl_output += "-------------------------------------------------------------------------------------------------------------------------\n\n"
         
@@ -63,9 +57,7 @@ class CTLSpecificationGenerator:
         return ctl_output
     
     def write_ctl_specifications(self, output_file, ctl_specifications):
-        with open(output_file, 'w') as file:
+        with open(output_file, 'a') as file:
             file.write(ctl_specifications)
-        
+
         print("CTL specifications have been generated and saved to:", output_file)
-        print("----------------------------------------")
-        print("Please insert the supervisor model in the generated file.")
