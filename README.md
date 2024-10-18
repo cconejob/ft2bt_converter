@@ -108,7 +108,7 @@ The XML file is loaded using [Groot](https://github.com/BehaviorTree/Groot):
 The order of the events is sorted by probability of occurrence (**-p** oprion).
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/cconejob/ft2bt_converter/master/ft2bt/test/behavior_trees/render/BT_hz_01.svg" alt="Behavior Tree Conversion Example" height="400"> <!-- or you can set the height instead -->
+  <img src="https://raw.githubusercontent.com/cconejob/ft2bt_converter/master/ft2bt/test/behavior_trees/render/BT_hz_01.svg" alt="Behavior Tree Conversion Example"> <!-- or you can set the height instead -->
 </p>
 
 ## Contact Information and Acknowledgement
