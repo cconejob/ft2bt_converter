@@ -221,7 +221,6 @@ class SupervisorModelGenerator:
         smv_code = self.generate_smv_header()
         
         subtree_list = self.get_sorted_subtrees()[:-1]
-        print(subtree_list)
     
         for subtree in subtree_list:
             smv_code += self.generate_smv_module(subtree)    
