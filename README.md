@@ -85,15 +85,15 @@ ft2bt -f FTA_FILEPATH [-v] [-c] [-r] [-o OUTPUT_FOLDER] [-p] [-H HARA_FILEPATH] 
 
 Where:
 
-* **-f**: (Required, str) Specifies the XML global filepath name of the draw.io diagram.
-* **-v**: (Optional, bool) Automatically shows and saves the renders. Defaults to False.
-* **-c**: (Optional, bool) Generate a cpp ROS node template for the behavior tree. Defaults to False.
-* **-r**: (Optional, bool) Replaces current code if previously generated and -c is set to True.
-* **-o**: (Optional, str) Specifies the global folder path, where the behavior tree XML diagram is saved.
-* **-p**: (Optional, bool) Probabilities are considered to sort the behavior tree nodes. Defaults to False.
-* **-H**: (Optional, str) Specifies the CSV global file name of the Hazard Analysis and Risk Assessment (HARA).
-* **-os**: (Optional, bool) Generate a FuSa BT that includes events to check the Operating Scenario. Defaults to False
-* **-ctl**: (Optional, bool) Formally verify the BT FuSa supervisor with CTL formulation. Defaults to False
+- **-f**: (Required, str) Specifies the XML global filepath name of the draw.io diagram.
+- **-v**: (Optional, bool) Automatically shows and saves the renders. Defaults to False.
+- **-c**: (Optional, bool) Generate a cpp ROS node template for the behavior tree. Defaults to False.
+- **-r**: (Optional, bool) Replaces current code if previously generated and -c is set to True.
+- **-o**: (Optional, str) Specifies the global folder path, where the behavior tree XML diagram is saved.
+- **-p**: (Optional, bool) Probabilities are considered to sort the behavior tree nodes. Defaults to False.
+- **-H**: (Optional, str) Specifies the CSV global file name of the Hazard Analysis and Risk Assessment (HARA).
+- **-os**: (Optional, bool) Generate a FuSa BT that includes events to check the Operating Scenario. Defaults to False
+- **-ctl**: (Optional, bool) Formally verify the BT FuSa supervisor with CTL formulation. Defaults to False
 
 ### Output Example: Behavior Tree Diagram
 
@@ -114,7 +114,7 @@ The order of the events is sorted by probability of occurrence (**-p** oprion).
 ## Related Research
 
 - Behavior Trees for the Application of ISO 26262 in Field Monitoring Processes for Autonomous Vehicles (Conference Article, IEEE ITSC 2024)
-- Behavior Trees in Functional Safety Supervisors for Autonomous Vehicles ([Preprint Article]((https://arxiv.org/abs/2410.02469)), IEEE ITS)
+- Behavior Trees in Functional Safety Supervisors for Autonomous Vehicles ([Preprint Article](https://arxiv.org/abs/2410.02469), IEEE ITS)
 
 ## Contact Information and Acknowledgement
 
