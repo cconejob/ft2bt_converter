@@ -111,10 +111,15 @@ The order of the events is sorted by probability of occurrence (**-p** oprion).
   <img src="https://raw.githubusercontent.com/cconejob/ft2bt_converter/master/ft2bt/test/behavior_trees/render/BT_hz_01.svg" alt="Behavior Tree Conversion Example"> <!-- or you can set the height instead -->
 </p>
 
+## Related Research
+
+- Behavior Trees for the Application of ISO 26262 in Field Monitoring Processes for Autonomous Vehicles (Conference Article, IEEE ITSC 2024)
+- Behavior Trees in Functional Safety Supervisors for Autonomous Vehicles ([Preprint Article]((https://arxiv.org/abs/2410.02469)), IEEE ITS)
+
 ## Contact Information and Acknowledgement
 
-For further information regarding this project, please feel free to reach out to Carlos Conejo.
+For further information regarding this project, please feel free to reach out to Carlos Conejo [carlos.conejo@upc.edu](mailto:carlos.conejo@upc.edu).
 
-This project was developed at the [Institut de Robòtica i Informàtica Industrial (IRI)](https://www.iri.upc.edu/), a joint university research center of the Polytechnic University of Catalonia (UPC) and the Spanish National Research Council (CSIC).
+This project was mainly developed at the [Institut de Robòtica i Informàtica Industrial (IRI)](https://www.iri.upc.edu/), a joint university research center of the Polytechnic University of Catalonia (UPC) and the Spanish National Research Council (CSIC). The automatized formal verification process was developed in collaboration with the  [Cyber Physical Systems Group (TUM)](https://www.ce.cit.tum.de/cps/home/).
 
 Research partially funded by the Spanish State Research Agency (AEI) and the European Regional Development Fund (ERFD) through the SaCoAV project (ref. PID2020-114244RB-I00). Also funded by Renault Group through the Industrial Doctorate "Safety of Autonomous Vehicles" (ref. C12507).
