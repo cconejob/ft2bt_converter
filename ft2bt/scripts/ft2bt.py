@@ -98,6 +98,20 @@ def main():
 
             # Run NuSMV on the supervisor model
             supervisor_model_generator.run_nusmv()
-
+    
+    print("-------------------------------------------------------------------------------------------------------------------------")        
+    print("Process completed successfully.")
+    print("-------------------------------------------------------------------------------------------------------------------------")
+    
+    print("\nSummary:")
+    print(f"Fault tree file: {args.fta_filepath}")
+    if args.HARA_filepath:
+        print(f"HARA file: {args.HARA_filepath}")
+    print(f"Behavior tree folder: {behavior_tree_folder}")
+    if args.ctl_specifications:
+        print("CTL specifications have been generated and verified.")
+        print(f"CTL specifications file: {supervisor_model_generator.bt_model_smv_path}")
+    print("-------------------------------------------------------------------------------------------------------------------------")
+          
 if __name__ == "__main__":    
     main()
