@@ -1,0 +1,124 @@
+-------------------------------------------------------------------------------------------------------------------------
+-- CONDITION NODE
+-------------------------------------------------------------------------------------------------------------------------
+
+-- The output is `true` if the condition is true, `false` otherwise.
+
+MODULE bt_condition(enable_condition, condition)
+VAR
+    enable : boolean;
+    output : { None, Success, Failure };
+ASSIGN
+    init(enable) := FALSE;
+    init(output) := None;
+    next(enable) := enable_condition;
+    next(output) :=
+    case
+        condition & enable_condition: Success;
+        TRUE : Failure;
+    esac;
+-------------------------------------------------------------------------------------------------------------------------
+
+
+-------------------------------------------------------------------------------------------------------------------------
+-- ACTION NODE
+-------------------------------------------------------------------------------------------------------------------------
+
+-- The output is `running` while the action is being executed, `true` if the action is successful, `false` otherwise.
+
+MODULE bt_action(enable_condition)
+VAR
+    enable : boolean;
+    goal_reached : boolean;
+    output : { None, Running, Failure, Success };
+    i : { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
+ASSIGN
+    init(enable) := FALSE;
+    init(output) := None;
+    init(goal_reached) := FALSE;
+    init(i) := 0;
+    next(enable) := enable_condition | enable;
+    next(output) :=
+    case
+        goal_reached : Success;
+        enable_condition | enable: Running;
+        TRUE : Failure;
+    esac;
+    next(i) :=
+    case
+        output = Running & i<10: i + 1;
+        i = 10 : 10;
+        TRUE : 0;
+    esac;
+    next(goal_reached) :=
+    case
+        goal_reached : goal_reached;
+        i < 10: FALSE;
+        i >= 10 : TRUE;
+        TRUE : goal_reached;
+    esac;
+-------------------------------------------------------------------------------------------------------------------------
+
+
+-------------------------------------------------------------------------------------------------------------------------
+-- FALLBACK NODE
+-------------------------------------------------------------------------------------------------------------------------
+
+-- The output is `running` if the left child is `running`, `true` if the left child is `true`, right child otherwise.
+
+MODULE bt_fallback(left_bt, right_bt)
+DEFINE 
+output := case
+    left_bt.output in { Running, Success } : left_bt.output;
+    TRUE : right_bt.output;
+    esac;
+-------------------------------------------------------------------------------------------------------------------------
+
+
+-------------------------------------------------------------------------------------------------------------------------
+-- SEQUENCE NODE
+-------------------------------------------------------------------------------------------------------------------------
+
+-- The output is `running` if the left child is `running`, `false` if the left child is `false`, right child otherwise.
+
+MODULE bt_sequence(left_bt, right_bt)
+DEFINE
+    output :=
+    case
+        left_bt.output in { Running, Failure } : left_bt.output;
+        TRUE : right_bt.output;
+    esac;
+-------------------------------------------------------------------------------------------------------------------------
+
+
+-------------------------------------------------------------------------------------------------------------------------
+-- NEGATION NODE
+-------------------------------------------------------------------------------------------------------------------------
+
+-- The output is `true` if the child output is `false`, `false` otherwise.
+
+MODULE bt_not(child_bt)
+DEFINE
+    output :=
+    case
+        child_bt.output = Failure : Success;
+        child_bt.output = Success : Failure;
+        TRUE : child_bt.output;
+    esac;
+-------------------------------------------------------------------------------------------------------------------------
+
+
+-------------------------------------------------------------------------------------------------------------------------
+-- PLACEHOLDER NODE
+-------------------------------------------------------------------------------------------------------------------------
+
+-- The output is `success` if the condition is true, `failure` otherwise.
+
+MODULE bt_placeholder(condition)
+DEFINE
+    output := 
+    case
+        condition : Success;
+        TRUE : Failure;
+    esac;
+-------------------------------------------------------------------------------------------------------------------------

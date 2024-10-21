@@ -4,20 +4,32 @@ import os
 
 from ft2bt.scripts.formal_verification.ctl_specification_generator import CTLSpecificationGenerator
 
+ft2bt_package_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 class SupervisorModelGenerator:
     def __init__(self, bt_xml_file_path):
-        # Replace xml by smv
+        """
+        Initializes the SupervisorModelGenerator with a given XML file path.
+        - Parses the XML file.
+        - Initializes data structures for tracking subtree dependencies and levels.
+        
+        Args:
+            bt_xml_file_path (str): The file path to the behavior tree XML file.
+        """
         self.bt_model_smv_path = bt_xml_file_path.replace(".xml", ".smv")
         self.tree = ET.parse(bt_xml_file_path)
         self.root = self.tree.getroot()
         self.smv_dict = {}
         self.prev_event_id = None
-        self.subtree_dependencies = defaultdict(list)  # To store dependencies of each subtree
-        self.subtree_levels = {}  # To store the calculated level of each subtree
+        self.subtree_dependencies = defaultdict(list)
+        self.subtree_levels = {} 
+        self.current_folder = os.path.dirname(os.path.abspath(__file__))
 
     def find_subtree_dependencies(self):
-        # Traverse the XML and find all SubTree dependencies
+        """
+        Parses the XML file to identify dependencies between subtrees.
+        - Stores which subtrees reference other subtrees.
+        """
         for bt_element in self.root.findall(".//BehaviorTree"):
             bt_id = bt_element.get('ID')
             for subtree in bt_element.findall(".//SubTree"):
@@ -25,19 +37,29 @@ class SupervisorModelGenerator:
                 self.subtree_dependencies[bt_id].append(referenced_id)
 
     def calculate_levels(self, subtree_id, visited=None):
+        """
+        Recursively calculates the level (depth) of each subtree based on its dependencies.
+        - Subtrees that depend on other subtrees have a higher level.
+        - Avoids cycles by tracking visited subtrees.
+        - Returns the calculated level of the subtree.
+        
+        Args:
+            subtree_id (str): The ID of the subtree to calculate the level for.
+            visited (set): A set of visited subtree IDs to avoid redundant calculations.
+            
+        Returns:
+            int: The calculated level of the subtree.
+        """
         if visited is None:
             visited = set()
         
         if subtree_id in visited:
-            # Avoid cycles and redundant calculations
             return 0
         visited.add(subtree_id)
 
-        # If the level is already calculated, return it
         if subtree_id in self.subtree_levels:
             return self.subtree_levels[subtree_id]
 
-        # Calculate the level by finding the max level of dependencies + 1
         level = 0
         if subtree_id in self.subtree_dependencies:
             level = 1 + max(self.calculate_levels(dep, visited) for dep in self.subtree_dependencies[subtree_id])
@@ -46,44 +68,100 @@ class SupervisorModelGenerator:
         return level
 
     def get_sorted_subtrees(self):
-        # Find all dependencies first
+        """
+        Sorts all subtrees based on their calculated levels (from lowest to highest).
+        - Calls find_subtree_dependencies to build the dependency map.
+        - Returns the list of subtree IDs in sorted order by level.
+        
+        Returns:
+            list: The sorted list of subtree IDs.
+        """
         self.find_subtree_dependencies()
         
-        # Calculate levels for each subtree
         all_subtrees = set(self.subtree_dependencies.keys()).union(
             dep for deps in self.subtree_dependencies.values() for dep in deps
         )
         for subtree in all_subtrees:
             self.calculate_levels(subtree)
         
-        # Sort subtrees by their levels (lowest to highest)
         sorted_subtrees = sorted(self.subtree_levels.items(), key=lambda x: x[1])
         return [subtree for subtree, level in sorted_subtrees]
         
     def convert_subscripts(self, text):
-        # Define a mapping for subscript numbers to regular numbers
+        """
+        Converts subscript characters in a string (e.g., "₁₂₃") to normal numbers.
+        - Returns the string with converted numbers.
+        
+        Args:
+            text (str): The text to convert.
+            
+        Returns:
+            str: The text with converted numbers.
+        """
         subscripts = str.maketrans("₀₁₂₃₄₅₆₇₈₉", "0123456789")
         return text.translate(subscripts)
     
     def invert_case(self, text):
-        # Inverts the case of each character in the text
+        """
+        Inverts the case of each character in the string (upper -> lower, lower -> upper).
+        - Returns the string with inverted cases.
+        
+        Args:
+            text (str): The text to invert the case for.
+        
+        Returns:
+            str: The text with inverted cases.
+        """
         return "".join([char.upper() if char.islower() else char.lower() for char in text])
 
-    # Helper functions to build SMV components
     def build_condition(self, condition_id, event_name):
+        """
+        Builds an SMV condition node.
+        - Returns the condition node as a string.
+        
+        Args:
+            condition_id (str): The ID of the condition node.
+            event_name (str): The name of the event associated with the condition.
+            
+        Returns:
+            str: The condition node as a string.
+        """
         return f"{condition_id} : bt_condition(TRUE, condition & {event_name});"
 
     def build_sequence(self, sequence_id, *components):
+        """
+        Builds an SMV sequence node.
+        - Returns the sequence node as a string.
+        
+        Args:
+            sequence_id (str): The ID of the sequence node.
+            components (list): The components (nodes) of the sequence.
+            
+        Returns:
+            str: The sequence node as a string.
+        """
         return f"{sequence_id} : bt_sequence({', '.join(components)});"
 
     def build_fallback(self, fallback_id, *components):
+        """
+        Builds an SMV fallback node.
+        - Returns the fallback node as a list of strings.
+        """
         return [f"{fallback_id} : bt_fallback({', '.join(components)});"]
 
     def build_action(self, action_id, prev_event_name):
+        """
+        Builds an SMV action node.
+        - Returns the action node as a string.
+        """
         return f"{action_id} : bt_action({prev_event_name}.output = Success);"
     
-    # Function to parse and translate a specific behavior tree
     def parse_behavior_tree(self, bt_id):
+        """
+        Parses a specific behavior tree from the XML file, generating its SMV code.
+        - Recursively parses nodes, conditions, sequences, fallbacks, actions, and subtrees.
+        - Returns the generated SMV code, variable list, subtree ID, and dependent subtrees.
+        """
         bt_element = self.root.find(f".//BehaviorTree[@ID='{bt_id}']")
         if bt_element is None:
             print(f"BehaviorTree with ID '{bt_id}' not found.")
@@ -95,7 +173,6 @@ class SupervisorModelGenerator:
         fallback_counter = 0
         sequence_counter = 0
 
-        # Recursive function to parse nodes
         def parse_node(node, parent_id=""):
             nonlocal fallback_counter, sequence_counter
             if node.tag == 'Condition':
@@ -109,7 +186,6 @@ class SupervisorModelGenerator:
             elif node.tag == 'Sequence':
                 sequence_children = [parse_node(child) for child in node]
                 while len(sequence_children) > 1:
-                    # Nest sequences if more than two children
                     sequence_id = self.convert_subscripts(f"seq_{sequence_counter}")
                     smv_code.append(self.build_sequence(sequence_id, sequence_children[0], sequence_children[1]))
                     sequence_children = [sequence_id] + sequence_children[2:]
@@ -118,7 +194,6 @@ class SupervisorModelGenerator:
             elif node.tag == 'Fallback':
                 fallback_children = [parse_node(child) for child in node]
                 while len(fallback_children) > 1:
-                    # Nest fallbacks if more than two children
                     fallback_id = self.convert_subscripts(f"fallback_{fallback_counter}")
                     nested_fallback = self.build_fallback(fallback_id, fallback_children[0], fallback_children[1])
                     smv_code.extend(nested_fallback)
@@ -132,44 +207,67 @@ class SupervisorModelGenerator:
                 smv_code.append(action_code)
                 return action_id
             elif node.tag == 'SubTree':
-                # Assume SubTree is referencing a pre-defined subtree module (like HZ_01 or HZ_02)
                 subtree_id = self.convert_subscripts(node.get('ID'))
                 dependent_subtrees.append(subtree_id)
                 smv_code.append(f"{subtree_id} : {subtree_id}(condition, {', '.join(self.smv_dict[subtree_id])});")
                 self.prev_event_id = subtree_id
                 return subtree_id
 
-        # Start parsing from the root node of the BehaviorTree
         root_node = bt_element[0]
         subtree_id = parse_node(root_node, bt_id)
-
         return smv_code, vars_list, subtree_id, dependent_subtrees
     
     def generate_smv_header(self):
-        return create_header()
+        """
+        Generates the SMV header, which includes definitions for behavior tree node types (e.g., condition, sequence).
+        
+        Returns:
+            str: The SMV header as a string.
+        """
+        header_file_path = os.path.join(self.current_folder, "smv_header.txt")
+        
+        with open(header_file_path, 'r') as file:
+            header = file.read()
+        return header+'\n\n'
 
-    # Function to generate the SMV module for a behavior tree
     def generate_smv_module(self, bt_id):
+        """
+        Generates the SMV module for a specific behavior tree.
+        - Constructs the full SMV module code for the tree and updates the dictionary of SMV variables.
+        - Returns the SMV module as a string.
+        
+        Args:
+            bt_id (str): The ID of the behavior tree to generate the module for.
+            
+        Returns:
+            str: The SMV module for the behavior tree as a string.
+        """
         bt_id_clean = self.convert_subscripts(bt_id)
         smv_code, vars_list, subtree_id, dependent_subtrees = self.parse_behavior_tree(bt_id)
-        
-        # If the behavior tree contains dependent sub-trees, the variables from the sub-trees are added to the list
+
         for dependent_subtree in dependent_subtrees:
             vars_list += self.smv_dict[dependent_subtree]
-            
-        # Sort the list of variables to ensure consistency
         vars_list = sorted(list(set(vars_list)))
-        
+
         smv_module = f"MODULE {bt_id_clean}(condition, {', '.join(vars_list)})\n  VAR\n"
         smv_module += "    " + "\n    ".join(smv_code) + "\n"
         smv_module += f"  DEFINE\n    output := {subtree_id}.output;\n\n"
         
         self.smv_dict[bt_id_clean] = vars_list
-        
         return smv_module
     
     def generate_smv_main_module(self, root_id):
-        # Identify OS variables and event variables
+        """
+        Generates the main SMV module, including OS and event variables.
+        - Constructs the full SMV module code for the main module.
+        - Returns the main SMV module as a string.
+        
+        Args:
+            root_id (str): The ID of the root behavior tree.
+            
+        Returns:
+            str: The main SMV module as a string.
+        """
         os_states = []
         os_states_inverted = []
         event_vars = []
@@ -181,45 +279,53 @@ class SupervisorModelGenerator:
                 else:
                     event_vars.append(var)
 
-        # Remove duplicates and sort for consistency
         os_states = sorted(set(os_states))
         os_states_inverted = sorted(set(os_states_inverted))
         event_vars = sorted(set(event_vars))
 
-        # Construct os enumeration and frozen variables for events
         os_enum = ", ".join(os_states_inverted)
         frozen_vars_events = "\n    ".join([f"{event}: boolean;" for event in event_vars])
         frozen_vars_events += "\n    " + "\n    ".join([f"Event_condition_{os}: boolean;" for os in os_states])
-        
-        # Construct the main module with FROZENVAR, ASSIGN, and VAR blocks
+
         root_id_clean = self.convert_subscripts(root_id)
         main_module = f"MODULE main\n"
         main_module += f"  FROZENVAR\n"
         main_module += f"    os: {{{os_enum}}};\n"
         main_module += f"    {frozen_vars_events}\n"
-        
-        # Define Event_condition_OSX variables using ASSIGN block based on os variable
+
         assign_conditions = "\n    ".join([f"ASSIGN\n    init(Event_condition_{os}) := os = {self.invert_case(os)};" for os in os_states])
         main_module += f"  ASSIGN\n    {assign_conditions}\n"
-        
-        # Construct VAR block to initialize the root behavior tree
+
         os_conditions = ", ".join([f"Event_condition_{os}" for os in os_states])
         main_module += f"  VAR\n    {root_id_clean} : {root_id_clean}(TRUE, {', '.join(event_vars)}, {os_conditions});\n"
-        
         return main_module
     
     def save_in_file(self, smv_module, file_path):
+        """
+        Saves the generated SMV module to the specified file path.
+        - Overwrites the existing file if it exists.
+        
+        Args:
+            smv_module (str): The SMV module to save.
+            file_path (str): The file path to save the SMV module to.
+        """
         with open(file_path, 'w') as file:
             file.write(smv_module)
         print(f"SMV module for BehaviorTree saved to: {file_path}")
         
     def run_nusmv(self):
-        # Run NuSMV on the generated SMV file. Command line: NuSMV <file_path>
+        """
+        Runs NuSMV on the generated SMV file.
+        - Calls the NuSMV binary using the system's command line.
+        """
         os.system(f"NuSMV {self.bt_model_smv_path}")
         
     def forward(self):
+        """
+        Generates the full SMV model by processing all subtrees and the main module.
+        - Saves the full model to the specified file path.
+        """
         smv_code = self.generate_smv_header()
-        
         subtree_list = self.get_sorted_subtrees()[:-1]
     
         for subtree in subtree_list:
@@ -229,144 +335,13 @@ class SupervisorModelGenerator:
         self.save_in_file(smv_code, self.bt_model_smv_path)
 
 
-def create_header():
-    
-    header = """
-    -------------------------------------------------------------------------------------------------------------------------
-    -- CONDITION NODE
-    -------------------------------------------------------------------------------------------------------------------------
-
-    -- The output is `true` if the condition is true, `false` otherwise.
-
-    MODULE bt_condition(enable_condition, condition)
-    VAR
-        enable : boolean;
-        output : { None, Success, Failure };
-    ASSIGN
-        init(enable) := FALSE;
-        init(output) := None;
-        next(enable) := enable_condition;
-        next(output) :=
-        case
-            condition & enable_condition: Success;
-            TRUE : Failure;
-        esac;
-    -------------------------------------------------------------------------------------------------------------------------
-
-
-    -------------------------------------------------------------------------------------------------------------------------
-    -- ACTION NODE
-    -------------------------------------------------------------------------------------------------------------------------
-
-    -- The output is `running` while the action is being executed, `true` if the action is successful, `false` otherwise.
-
-    MODULE bt_action(enable_condition)
-    VAR
-        enable : boolean;
-        goal_reached : boolean;
-        output : { None, Running, Failure, Success };
-        i : { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
-    ASSIGN
-        init(enable) := FALSE;
-        init(output) := None;
-        init(goal_reached) := FALSE;
-        init(i) := 0;
-        next(enable) := enable_condition | enable;
-        next(output) :=
-        case
-            goal_reached : Success;
-            enable_condition | enable: Running;
-            TRUE : Failure;
-        esac;
-        next(i) :=
-        case
-            output = Running & i<10: i + 1;
-            i = 10 : 10;
-            TRUE : 0;
-        esac;
-        next(goal_reached) :=
-        case
-            goal_reached : goal_reached;
-            i < 10: FALSE;
-            i >= 10 : TRUE;
-            TRUE : goal_reached;
-        esac;
-    -------------------------------------------------------------------------------------------------------------------------
-
-
-    -------------------------------------------------------------------------------------------------------------------------
-    -- FALLBACK NODE
-    -------------------------------------------------------------------------------------------------------------------------
-
-    -- The output is `running` if the left child is `running`, `true` if the left child is `true`, right child otherwise.
-
-    MODULE bt_fallback(left_bt, right_bt)
-    DEFINE 
-    output := case
-        left_bt.output in { Running, Success } : left_bt.output;
-        TRUE : right_bt.output;
-        esac;
-    -------------------------------------------------------------------------------------------------------------------------
-
-
-    -------------------------------------------------------------------------------------------------------------------------
-    -- SEQUENCE NODE
-    -------------------------------------------------------------------------------------------------------------------------
-
-    -- The output is `running` if the left child is `running`, `false` if the left child is `false`, right child otherwise.
-
-    MODULE bt_sequence(left_bt, right_bt)
-    DEFINE
-        output :=
-        case
-            left_bt.output in { Running, Failure } : left_bt.output;
-            TRUE : right_bt.output;
-        esac;
-    -------------------------------------------------------------------------------------------------------------------------
-
-
-    -------------------------------------------------------------------------------------------------------------------------
-    -- NEGATION NODE
-    -------------------------------------------------------------------------------------------------------------------------
-
-    -- The output is `true` if the child output is `false`, `false` otherwise.
-
-    MODULE bt_not(child_bt)
-    DEFINE
-        output :=
-        case
-            child_bt.output = Failure : Success;
-            child_bt.output = Success : Failure;
-            TRUE : child_bt.output;
-        esac;
-    -------------------------------------------------------------------------------------------------------------------------
-
-
-    -------------------------------------------------------------------------------------------------------------------------
-    -- PLACEHOLDER NODE
-    -------------------------------------------------------------------------------------------------------------------------
-
-    -- The output is `success` if the condition is true, `failure` otherwise.
-
-    MODULE bt_placeholder(condition)
-    DEFINE
-        output := 
-        case
-            condition : Success;
-            TRUE : Failure;
-        esac;
-    -------------------------------------------------------------------------------------------------------------------------
-    """
-    
-    return header
-
-
-
 def main():
-    supervisor_model_generator = SupervisorModelGenerator("/home/tda/ft2bt_converter/behavior_trees/BT_i_01.xml")
+    bt_folder = os.path.join(ft2bt_package_path, "behavior_trees")
+    hara_folder = os.path.join(ft2bt_package_path, "ft2bt/test/hara")
+    supervisor_model_generator = SupervisorModelGenerator(f"{bt_folder}/BT_i_01.xml")
     supervisor_model_generator.forward()
 
-    ctl_spec_generator = CTLSpecificationGenerator(hara_file_path="/home/tda/ft2bt_converter/ft2bt/test/hara/hara_example.csv")
+    ctl_spec_generator = CTLSpecificationGenerator(hara_file_path=f"{hara_folder}/hara_example.csv")
     specs = ctl_spec_generator.generate_ctl_specifications()
     ctl_spec_generator.write_ctl_specifications(supervisor_model_generator.bt_model_smv_path, specs)
     

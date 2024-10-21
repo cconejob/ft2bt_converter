@@ -6,7 +6,7 @@ with open('requirements.txt') as f:
 
 setup(
     name='ft2bt',
-    version='0.4.5',
+    version='0.5.1',
     packages=find_packages(),
     install_requires=required,  # Use the list from requirements.txt
     entry_points={
@@ -16,7 +16,7 @@ setup(
     },
     author='Carlos Conejo',
     author_email='carlos.conejo@upc.edu',
-    description='Automatic conversion from fault trees into behavior trees',
+    description='Automatic conversion from fault trees into behavior trees with formal verification capabilities',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
     url='https://github.com/cconejob/ft2bt_converter.git',
