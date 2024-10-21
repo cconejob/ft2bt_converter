@@ -6,6 +6,7 @@ from ft2bt.scripts.formal_verification.ctl_specification_generator import CTLSpe
 
 ft2bt_package_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
+
 class SupervisorModelGenerator:
     def __init__(self, bt_xml_file_path):
         """
@@ -185,6 +186,10 @@ class SupervisorModelGenerator:
                 return condition_id
             elif node.tag == 'Sequence':
                 sequence_children = [parse_node(child) for child in node]
+                if len(sequence_children) == 1:
+                    placeholder_id = f"empty_{sequence_counter}"
+                    smv_code.append(f"{placeholder_id} : bt_placeholder(TRUE);")
+                    sequence_children.append(placeholder_id)
                 while len(sequence_children) > 1:
                     sequence_id = self.convert_subscripts(f"seq_{sequence_counter}")
                     smv_code.append(self.build_sequence(sequence_id, sequence_children[0], sequence_children[1]))
@@ -193,6 +198,10 @@ class SupervisorModelGenerator:
                 return sequence_children[0]
             elif node.tag == 'Fallback':
                 fallback_children = [parse_node(child) for child in node]
+                if len(fallback_children) == 1:
+                    placeholder_id = f"empty_{fallback_counter}"
+                    smv_code.append(f"{placeholder_id} : bt_placeholder(FALSE);")  # Add bt_placeholder
+                    fallback_children.append(placeholder_id)  # Add the placeholder as the second child
                 while len(fallback_children) > 1:
                     fallback_id = self.convert_subscripts(f"fallback_{fallback_counter}")
                     nested_fallback = self.build_fallback(fallback_id, fallback_children[0], fallback_children[1])
@@ -202,7 +211,6 @@ class SupervisorModelGenerator:
                 return fallback_children[0]
             elif node.tag == 'Action':
                 action_id = self.convert_subscripts(node.get('ID'))
-                action_name = self.convert_subscripts(node.get('name'))
                 action_code = self.build_action(action_id, self.prev_event_id)
                 smv_code.append(action_code)
                 return action_id
