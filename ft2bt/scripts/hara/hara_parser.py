@@ -1,5 +1,4 @@
 import csv
-from pathlib import Path
 
 """
 ===================================
@@ -17,6 +16,7 @@ Columns:
 class HARAParser:
     def __init__(self, hara_file):
         self.hara_file = hara_file
+        print(f'Parsing the HARA file: {self.hara_file}')
         self.hara_dict = self.parse_hara_file()
         
     def parse_hara_file(self):
