@@ -58,7 +58,7 @@ Where:
 - **-f**: (Required, str) Specifies the XML global filepath name of the draw.io diagram.
 - **-o**: (Optional, str) Specifies the global folder path, where the behavior tree XML diagram is saved.
 - **-H**: (Optional, str) Specifies the CSV global file name of the Hazard Analysis and Risk Assessment (HARA).
-- **-ctl**: (Optional, bool) Formally verify the BT FuSa supervisor with CTL formulation, using NuSMV 2.6.0.
+- **-ctl**: (Optional, bool) Formally verifies the BT FuSa supervisor with CTL formulation, using NuSMV 2.6.0.
 - **-v**: (Optional, bool) Automatically shows and saves the renders.
 
 ### Output Example: Behavior Tree Diagram
