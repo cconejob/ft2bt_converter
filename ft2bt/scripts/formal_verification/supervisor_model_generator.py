@@ -1,6 +1,7 @@
 import xml.etree.ElementTree as ET
 from collections import defaultdict
 import os
+import subprocess
 
 from ft2bt.scripts.formal_verification.ctl_specification_generator import CTLSpecificationGenerator
 
@@ -296,6 +297,7 @@ class SupervisorModelGenerator:
         frozen_vars_events += "\n    " + "\n    ".join([f"Event_condition_{os}: boolean;" for os in os_states])
 
         root_id_clean = self.convert_subscripts(root_id)
+        self.root_id = root_id_clean
         main_module = f"MODULE main\n"
         main_module += f"  FROZENVAR\n"
         main_module += f"    os: {{{os_enum}}};\n"
@@ -326,7 +328,28 @@ class SupervisorModelGenerator:
         Runs NuSMV on the generated SMV file.
         - Calls the NuSMV binary using the system's command line.
         """
-        os.system(f"NuSMV {self.bt_model_smv_path}")
+        try:
+            result = subprocess.run(
+                ["NuSMV", self.bt_model_smv_path], 
+                capture_output=True, 
+                text=True, 
+                check=True
+            )
+            # Output the results
+            print(result.stdout)  # Standard output (the result of the formalization)
+            print(result.stderr)  # Standard error (if any warnings or errors occurred)
+            
+            # Check if the output indicates success or failure in the formalization
+            if "is true" in result.stdout:
+                print(f"\033[1mFormal verification for the BehaviorTree {self.root_id} was successful.\033[0m\n")
+                return True
+            else:
+                print(f"\033[1mFormal verification for the BehaviorTree {self.root_id} failed or returned false.\033[0m\n")
+                return False
+                
+        except subprocess.CalledProcessError as e:
+            print(f"Error occurred: {e.stderr}")
+            return False
         
     def forward(self):
         """
