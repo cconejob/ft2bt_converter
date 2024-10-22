@@ -10,7 +10,7 @@ with open('README.md', 'r', encoding='utf-8') as f:
 
 setup(
     name='ft2bt',
-    version='0.6.19',
+    version='0.7.0',
     packages=find_packages(),
     install_requires=required,  # Use the list from requirements.txt
     entry_points={
