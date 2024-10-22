@@ -9,5 +9,5 @@ class BehaviorTreeNode:
         self.children = list()
         self.label = label
         self.probability = probability
-        self.level = 0
+        self.level = int()
         self.asil = None

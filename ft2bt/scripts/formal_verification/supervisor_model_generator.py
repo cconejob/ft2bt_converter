@@ -62,7 +62,7 @@ class SupervisorModelGenerator:
         if subtree_id in self.subtree_levels:
             return self.subtree_levels[subtree_id]
 
-        level = 0
+        level = int()
         if subtree_id in self.subtree_dependencies:
             level = 1 + max(self.calculate_levels(dep, visited) for dep in self.subtree_dependencies[subtree_id])
 
@@ -169,13 +169,21 @@ class SupervisorModelGenerator:
             print(f"BehaviorTree with ID '{bt_id}' not found.")
             return None
         
-        smv_code = []
-        vars_list = []
-        dependent_subtrees = []
-        fallback_counter = 0
-        sequence_counter = 0
+        smv_code = list()
+        vars_list = list()
+        dependent_subtrees = list()
+        fallback_counter = int()
+        sequence_counter = int()
 
-        def parse_node(node, parent_id=""):
+        def parse_node(node):
+            """
+            Parses a node in the behavior tree.
+            - Recursively parses the node and its children.
+            - Builds the SMV code for the node.
+            
+            Args:
+                node (Element): The XML element representing the node.
+            """
             nonlocal fallback_counter, sequence_counter
             if node.tag == 'Condition':
                 condition_id = self.convert_subscripts(node.get('ID'))
@@ -223,7 +231,7 @@ class SupervisorModelGenerator:
                 return subtree_id
 
         root_node = bt_element[0]
-        subtree_id = parse_node(root_node, bt_id)
+        subtree_id = parse_node(root_node)
         return smv_code, vars_list, subtree_id, dependent_subtrees
     
     def generate_smv_header(self):
@@ -277,9 +285,9 @@ class SupervisorModelGenerator:
         Returns:
             str: The main SMV module as a string.
         """
-        os_states = []
-        os_states_inverted = []
-        event_vars = []
+        os_states = list()
+        os_states_inverted = list()
+        event_vars = list()
         for value in self.smv_dict.values():
             for var in value:
                 if "condition_OS" in var:

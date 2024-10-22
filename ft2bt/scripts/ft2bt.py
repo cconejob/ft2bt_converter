@@ -71,7 +71,7 @@ def main():
     else:
         print(f"HARA: {args.HARA_filepath}")
         hara_generator = HARAParser(hara_file=args.HARA_filepath)
-        bt_hara_list = []
+        bt_hara_list = list()
         for item_id, hazard_dict in hara_generator.hara_dict.items():
             bt_hara = BehaviorTree(name=item_id)
             bt_hara.generate_from_hara(hazard_dict)
@@ -99,7 +99,7 @@ def main():
             print("HARA file not provided. Cannot generate CTL specifications.")
         else:
             ctl_spec_generator = CTLSpecificationGenerator(hara_file_path=args.HARA_filepath)
-            nusmv_result_list = []
+            nusmv_result_list = list()
             
             for bt_hara in bt_hara_list:
                 supervisor_model_generator = SupervisorModelGenerator(bt_xml_file_path=bt_hara.xml_file_path)
