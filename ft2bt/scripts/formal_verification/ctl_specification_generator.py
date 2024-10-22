@@ -10,7 +10,7 @@ class CTLSpecificationGenerator:
         subscripts = str.maketrans("₀₁₂₃₄₅₆₇₈₉", "0123456789")
         return text.translate(subscripts)
 
-    def generate_ctl_specifications(self):
+    def generate_ctl_specifications(self, root_id):
         ctl_output = "-------------------------------------------------------------------------------------------------------------------------\n"
         ctl_output += "-- CTL PROPERTIES\n"
         ctl_output += "-------------------------------------------------------------------------------------------------------------------------\n\n"
@@ -22,7 +22,14 @@ class CTLSpecificationGenerator:
         
         # Group by 'Item_ID' and 'Operating_Scenario_ID'
         items = self.hara_df['Item_ID'].unique()
-        for item in items:
+        
+        # Find the root_id in the items
+        if root_id not in items:
+            print(f"Root ID {root_id} not found in the HARA file")
+            return
+
+        else:
+            item = root_id
             item_df = self.hara_df[self.hara_df['Item_ID'] == item]
             os_ids = item_df['Operating_Scenario_ID'].unique()
             
