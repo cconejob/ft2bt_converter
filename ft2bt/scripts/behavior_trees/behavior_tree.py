@@ -22,19 +22,18 @@ class BehaviorTree:
         name (str, optional): Name of the behavior tree. Defaults to str().
         probabilistic (bool, optional): Whether the behavior tree is probabilistic. Defaults to False.
     """
-    def __init__(self, name=str(), probabilistic=False, operating_scenario=False):
+    def __init__(self, name=str()):
         self.nodes = dict()
         self.name = name
         self.event_number = int()
         self.action_number = int()
-        self.probabilistic = probabilistic
-        self.operating_scenario = operating_scenario
+        self.probabilistic = True
+        self.operating_scenario = True
         
         # Probabilistic behavior tree attributes
-        if probabilistic:
-            self.node_probabilities = dict()
-            self.node_levels = dict()
-            self.max_level = int()
+        self.node_probabilities = dict()
+        self.node_levels = dict()
+        self.max_level = int()
             
     """
     ==============================================
@@ -514,13 +513,14 @@ class BehaviorTree:
 
         return ET.tostring(root, encoding='unicode')
             
-    def generate_xml_file(self, folder_name, view=False):
+    def generate_xml_file(self, folder_name, view=False, hara=False):
         """
         Generate a behavior tree XML compatible with BehaviorTree.CPP library and save it to a file.
         
         Args:
             folder_name (str): Folder name to save the XML file
             view (bool, optional): Display the tree. Defaults to False.
+            hara (bool, optional): Whether the behavior tree is generated from HARA data. Defaults to False.
         """
         # Add root nodes to the behavior tree
         actual_root_nodes = [node_id for node_id, node in self.nodes.items() if node.node_type == 'Root']
@@ -544,6 +544,9 @@ class BehaviorTree:
 
         # Write to file
         self.xml_file_path = os.path.join(folder_name, f'BT_{self.name}.xml')
+        if hara:
+            self.xml_file_path = self.xml_file_path.replace('.xml', '_HARA.xml')
+            
         with open(self.xml_file_path, 'w') as file:
             file.write(pretty_xml_str)
             
