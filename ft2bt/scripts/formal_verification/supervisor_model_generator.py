@@ -327,6 +327,9 @@ class SupervisorModelGenerator:
         """
         Runs NuSMV on the generated SMV file.
         - Calls the NuSMV binary using the system's command line.
+        
+        Returns:
+            bool: True if the formal verification was successful, False otherwise.
         """
         try:
             result = subprocess.run(

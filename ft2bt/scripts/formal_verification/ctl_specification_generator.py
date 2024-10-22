@@ -2,15 +2,46 @@ import pandas as pd
 
 
 class CTLSpecificationGenerator:
+    """
+    Class to generate CTL specifications from the HARA file for formal verification 
+    
+    Args:
+        hara_file_path (str): Path to the HARA file
+        
+    Attributes:
+        hara_df (pd.DataFrame): DataFrame containing the HARA data
+    """
     def __init__(self, hara_file_path):
         self.hara_df = pd.read_csv(hara_file_path)
 
     def convert_subscripts(self, text):
-        # Define a mapping for subscript numbers to regular numbers
+        """
+        Convert subscripts to normal numbers
+        
+        Args:
+            text (str): Text to convert
+            
+        Returns:
+            str: Converted text
+        """
         subscripts = str.maketrans("₀₁₂₃₄₅₆₇₈₉", "0123456789")
         return text.translate(subscripts)
 
     def generate_ctl_specifications(self, root_id):
+        """
+        Generate CTL specifications for the HARA file.
+        
+        Propositions from FuSa standards to CTL formulation:
+            1. Check operating situations until one is successful
+            2. Check hazards within each operating scenario until one is successful or all fail
+            3. Check safety state actions for each hazard and operating scenario
+        
+        Args:
+            root_id (str): Root ID of the HARA file
+            
+        Returns:
+            str: CTL specifications
+        """
         ctl_output = "-------------------------------------------------------------------------------------------------------------------------\n"
         ctl_output += "-- CTL PROPERTIES\n"
         ctl_output += "-------------------------------------------------------------------------------------------------------------------------\n\n"
@@ -53,7 +84,7 @@ class CTLSpecificationGenerator:
             
             # Proposition 3: Check safety state actions for each hazard and operating scenario
             for os_id in os_ids:
-                for index, row in item_df[item_df['Operating_Scenario_ID'] == os_id].iterrows():
+                for _, row in item_df[item_df['Operating_Scenario_ID'] == os_id].iterrows():
                     hazard = row['Hazard_ID']
                     safety_state = row['Safety_State_ID']
                     ctl_output += f"-- PROPOSITION 3\n"
@@ -64,6 +95,13 @@ class CTLSpecificationGenerator:
         return ctl_output
     
     def write_ctl_specifications(self, output_file, ctl_specifications):
+        """
+        Write the CTL specifications to a file
+        
+        Args:
+            output_file (str): Path to the output file
+            ctl_specifications (str): CTL specifications
+        """
         with open(output_file, 'a') as file:
             file.write(ctl_specifications)
 
