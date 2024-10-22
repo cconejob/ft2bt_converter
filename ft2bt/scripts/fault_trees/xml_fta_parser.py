@@ -15,7 +15,7 @@ class XMLFTAParser:
         xml_file (str): Path to the XML file
         probabilistic (bool): Whether the fault tree is probabilistic
     """
-    def __init__(self, xml_file, probabilistic=False):
+    def __init__(self, xml_file):
         self.xml_file = xml_file
         self.tree = ET.parse(xml_file)
         self.root = self.tree.getroot()
@@ -24,7 +24,7 @@ class XMLFTAParser:
         self.fault_trees = list()
         self.fault_tree_number = int()
         self.graph_number = int()
-        self.probabilistic = probabilistic
+        self.probabilistic = True
         self.node_position = dict()
         self.node_probabilities = dict()
 
