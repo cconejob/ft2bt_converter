@@ -3,9 +3,11 @@
 Test 3
 ========================================
 
-Fault Tree and HARA to Behavior Tree Conversion (considering FTA probabilities)
+Fault Tree and HARA to Behavior Tree Conversion
+Extractig CTL specifications
 
 """
+
 import os
 from pathlib import Path
 try:
@@ -29,7 +31,7 @@ def main():
     """
     Run the ft2bt script with the fault tree XML file.
     """
-    os.system(f'ft2bt -f {fta_file} -o {output_folder} -v -H {hara_file} -os -p')
+    os.system(f'ft2bt -f {fta_file} -o {output_folder} -H {hara_file} -ctl')
 
 if __name__ == "__main__":
     main()

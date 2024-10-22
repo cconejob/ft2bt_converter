@@ -142,5 +142,7 @@ cython_debug/
 /behavior_trees/render/*.pdf
 /include
 /src
+ft2bt/test/behavior_trees/*.xml
+ft2bt/test/behavior_trees/*.smv
 *.gv
 *.pdf

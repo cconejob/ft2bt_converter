@@ -27,7 +27,7 @@ def main():
     """
     Run the ft2bt script with the fault tree XML file.
     """
-    os.system(f'ft2bt -f {fta_file} -o {output_folder} -v')
+    os.system(f'ft2bt -f {fta_file} -o {output_folder}')
 
 if __name__ == "__main__":
     main()
